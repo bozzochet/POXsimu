@@ -1,19 +1,20 @@
 # POXsimu
 
-GGS Simulation of POX prototype detector
+GGS Simulation of POX prototype detector\n
 
-vis.mac: 
--> gamma 100 MeV
--> 10000 events
-geo.mac:
--> 10+4 layers
--> thickness 300 um
-
-
+vis.mac:\n
+-> gamma 100 MeV\n
+-> 10000 events\n
+geo.mac:\n
+-> 10+4 layers\n
+-> thickness 300 um\n
+\n
+```
 GGSPenny -g plugins/libTestGeometry.so -gd geo.mac -d vis.mac -ro GGSRootOutput.root > GGSOut.txt
-
-produces the file GGSRootOutput.root, and the .wrl files of the first 100 events
-see for example g4_03.wrl for conferted gamma
-(the creation of the .wrl event display is suppressed commenting the
-/vis/open VRML2FILE
-line the vis.mac macro) 
+```
+\n
+produces the file GGSRootOutput.root, and the .wrl files of the first 100 events\n
+see for example g4_03.wrl for conferted gamma\n
+(the creation of the .wrl event display is suppressed commenting the\n
+/vis/open VRML2FILE\n
+line the vis.mac macro)\n 
