@@ -5,7 +5,7 @@
 
 # Open an OpenGL visualization
 #/vis/open OGL 600x600-0+0
-/vis/open VRML2FILE
+#/vis/open VRML2FILE
 
 #/vis/viewer/set/autoRefresh false
 #/vis/verbose errors
