@@ -1,8 +1,8 @@
 # POXsimu
 
-GGS Simulation of POX prototype detector\n
+GGS Simulation of POX prototype detector
 
-vis.mac:\n
+vis.mac:
 -> gamma 100 MeV\n
 -> 10000 events\n
 geo.mac:\n
