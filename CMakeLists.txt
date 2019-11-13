@@ -13,5 +13,8 @@ get_property(include_dirs DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY INCLUDE_DIRECTO
 list(REMOVE_ITEM include_dirs "/usr/include")
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${include_dirs})
 
-
 add_subdirectory(src)
+
+# Set install rules
+install(DIRECTORY macros DESTINATION .
+	PATTERN *~ EXCLUDE)
