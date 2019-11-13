@@ -13,8 +13,9 @@ geo.mac:
 GGSPenny -g plugins/libTestGeometry.so -gd geo.mac -d vis.mac -ro GGSRootOutput.root > GGSOut.txt
 ```
   
-produces the file GGSRootOutput.root, and the .wrl files of the first 100 events  
-see for example g4_03.wrl for conferted gamma  
-(the creation of the .wrl event display is suppressed commenting the  
-/vis/open VRML2FILE  
+produces the file GGSRootOutput.root, and the .wrl files of the first 100 events see for example g4_03.wrl for conferted gamma  
+(the creation of the .wrl event display is suppressed commenting the
+```
+/vis/open VRML2FILE
+```
 line the vis.mac macro)
