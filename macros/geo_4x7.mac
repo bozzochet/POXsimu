@@ -1,0 +1,54 @@
+#########################################
+# Configuring geometry commands #
+#########################################
+
+/Detector/layerAlignment 01010101011111			# set alignment of layers X=0 Y=1
+##/Detector/layerAlignment 010101010101010101011111	# set alignment of layers X=0 Y=1 
+
+/Detector/layersOffsetX 2.0 cm	  		# set X alignment of layers
+/Detector/layersOffsetY 3.52 cm	  		# set Y alignment of layers
+
+/Detector/targetPosZ 0. cm			# set target Z pos
+
+/Detector/targetSizeX 60. cm			# set target box X size [50]
+/Detector/targetSizeY 60. cm			# set target box Y size [50]
+/Detector/targetSizeZ 60. cm			# set target box Z size [50]
+
+/Detector/targetLayerOffsetZ 0. cm		# set target layers offset
+/Detector/targetLayerDistance 3. cm		# set target inter-layer distance
+/Detector/targetLayerNo 10			# set target layers number
+/Detector/targetLayerMiniNo 4			# set target mini-layer number
+/Detector/targetLayerShortNo 1			# set target short-layer number
+/Detector/targetLayerDampeNo 5			# set target dampe-layer number
+
+/Detector/tileX 4.0 cm				# set sensor tile X size
+/Detector/tileY 7.04 cm			# set sensor tile Y size
+#/Detector/tileX 9.50 cm				# set sensor tile X size
+#/Detector/tileY 9.50 cm			# set sensor tile Y size
+#/Detector/tileX 5.0 cm				# set sensor tile X size
+#/Detector/tileY 5.0 cm				# set sensor tile Y size
+/Detector/tileThickness 0.300 mm		# set sensor tile thickness
+/Detector/tileSPitch 0.11 mm			# set sensor tile S Pitch
+/Detector/tileKPitch 0.208 mm			# set sensor tile K Pitch
+
+/Detector/layerMiniTileNo 1			# set short layer tiles number
+/Detector/layerShortTileNo 4			# [4] set short layer tiles number
+/Detector/layerLongTileNo 12			# [12] set long layer tiles number
+/Detector/layerDampeTileNo 8			# [8] set dampe layer tiles number
+
+/Detector/smOffsetZ 0. cm			# set spectrometer box Z offset
+/Detector/smSizeX 80. cm			# set spectrometer box X size
+/Detector/smSizeY 80. cm			# set spectrometer box Y size
+/Detector/smSizeZ 80. cm			# set spectrometer box Z size
+
+/Detector/smLayerNo 4  			# set spectrometer layers number
+/Detector/layerFDist 10. cm		# set sm front inter-layer distance
+/Detector/layerEDist 10. cm		# set sm exit inter-layer distance
+/Detector/layerFGap 0. cm		# set sm front layer-magvol distance
+/Detector/layerEGap 0. cm		# set sm exit layer-magvol distance
+
+/Detector/magVolR 7. cm			# set magnetic volume radius
+/Detector/magVolZ 20. cm			# set magnetic volume Z size
+##/Detector/magFieldVal 1.69604 tesla		# CONST RADIUS OF CURV value
+/Detector/magFieldVal 0.05 tesla		# set magnetic field value
+#/Detector/magFieldVal 0.0 tesla		# set magnetic field value
