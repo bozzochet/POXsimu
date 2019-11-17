@@ -23,7 +23,7 @@
 
 #/Detector/tileX 4.0 cm				# set sensor tile X size
 #/Detector/tileY 7.04 cm			# set sensor tile Y size
-#/Detector/tileX 9.50 cm				# set sensor tile X size
+#/Detector/tileX 9.50 cm			# set sensor tile X size
 #/Detector/tileY 9.50 cm			# set sensor tile Y size
 /Detector/tileX 50.0 cm				# set sensor tile X size
 /Detector/tileY 50.0 cm				# set sensor tile Y size

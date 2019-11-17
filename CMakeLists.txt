@@ -18,3 +18,7 @@ add_subdirectory(src)
 # Set install rules
 install(DIRECTORY macros DESTINATION .
 	PATTERN *~ EXCLUDE)
+
+# Set install rules
+install(DIRECTORY Analysis DESTINATION .
+	PATTERN *~ EXCLUDE)
