@@ -19,6 +19,8 @@ add_subdirectory(src)
 install(DIRECTORY macros DESTINATION .
 	PATTERN *~ EXCLUDE)
 
-# Set install rules
 install(DIRECTORY Analysis DESTINATION .
+	PATTERN *~ EXCLUDE)
+
+install(DIRECTORY rootlogon.C DESTINATION .
 	PATTERN *~ EXCLUDE)
