@@ -22,5 +22,4 @@ install(DIRECTORY macros DESTINATION .
 install(DIRECTORY Analysis DESTINATION .
 	PATTERN *~ EXCLUDE)
 
-install(DIRECTORY rootlogon.C DESTINATION .
-	PATTERN *~ EXCLUDE)
+install(FILES rootlogon.C DESTINATION .)
