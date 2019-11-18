@@ -3,7 +3,7 @@
  *
  *  Created on: 25 Apr 2018
  *  Author: Viviana Scherini
-*/
+ */
 
 
 #include "DetectorConstruction.hh"
@@ -72,38 +72,50 @@ GGSVGeometryConstruction(), fCheckOverlaps(false), fPhysicalWorld(NULL) {
   _messenger->DeclareProperty("targetLayerOffsetZ", fTargetLayerOffsetZ, "Set target layer Z offset").SetUnit("cm");
   _messenger->DeclareProperty("targetLayerDistance", fTargetLayerDistance, "Set target inter-layer distance").SetUnit("cm");
   _messenger->DeclareProperty("targetLayerNo", fTargetLayerNo, "Set target layer number");
- 
+  
+  _messenger->DeclareProperty("AMStileX", fAMSTileX, "Set sensor AMS tile X size").SetUnit("cm");
+  _messenger->DeclareProperty("AMStileY", fAMSTileY, "Set sensor AMS tile Y size").SetUnit("cm");
+  _messenger->DeclareProperty("AMStileThickness", fAMSTileThickness, "Set sensor AMS tile thickness").SetUnit("mm");
+  _messenger->DeclareProperty("AMStileSPitch", fAMSTileSPitch, "Set sensor AMS tile S Pitch").SetUnit("mm");
+  _messenger->DeclareProperty("AMStileKPitch", fAMSTileKPitch, "Set sensor AMS tile K Pitch").SetUnit("mm");
+
+  _messenger->DeclareProperty("DAMPEtileX", fDAMPETileX, "Set sensor DAMPE tile X size").SetUnit("cm");
+  _messenger->DeclareProperty("DAMPEtileY", fDAMPETileY, "Set sensor DAMPE tile Y size").SetUnit("cm");
+  _messenger->DeclareProperty("DAMPEtileThickness", fDAMPETileThickness, "Set sensor DAMPE tile thickness").SetUnit("mm");
+  _messenger->DeclareProperty("DAMPEtileSPitch", fDAMPETileSPitch, "Set sensor DAMPE tile S Pitch").SetUnit("mm");
+  _messenger->DeclareProperty("DAMPEtileKPitch", fDAMPETileKPitch, "Set sensor DAMPE tile K Pitch").SetUnit("mm");
+
   _messenger->DeclareProperty("tileX", fTileX, "Set sensor tile X size").SetUnit("cm");
   _messenger->DeclareProperty("tileY", fTileY, "Set sensor tile Y size").SetUnit("cm");
   _messenger->DeclareProperty("tileThickness", fTileThickness, "Set sensor tile thickness").SetUnit("mm");
   _messenger->DeclareProperty("tileSPitch", fTileSPitch, "Set sensor tile S Pitch").SetUnit("mm");
   _messenger->DeclareProperty("tileKPitch", fTileKPitch, "Set sensor tile K Pitch").SetUnit("mm");
-   
+  
   _messenger->DeclareProperty("targetLayerMiniNo", fTargetLayerMiniNo, "Set target mini-layer number");
   _messenger->DeclareProperty("targetLayerShortNo", fTargetLayerShortNo, "Set target short-layer number");
   _messenger->DeclareProperty("targetLayerDampeNo", fTargetLayerDampeNo, "Set target Dampe-layer number");
   _messenger->DeclareProperty("layerMiniTileNo", fLayerMiniTileNo, "Set mini-layer tiles number");
-
+  
   _messenger->DeclareProperty("layerShortTileNo", fLayerShortTileNo, "Set short-layer tiles number");
   _messenger->DeclareProperty("layerLongTileNo", fLayerLongTileNo, "Set long-layer tiles number");
   _messenger->DeclareProperty("layerDampeTileNo", fLayerDampeTileNo, "Set dampe-layer tiles number");
   
-    _messenger->DeclareProperty("smOffsetZ", fSMOffsetZ, "Set spectrometer box Z offset position").SetUnit("cm");
+  _messenger->DeclareProperty("smOffsetZ", fSMOffsetZ, "Set spectrometer box Z offset position").SetUnit("cm");
   _messenger->DeclareProperty("smSizeX", fSMSizeX, "Set spectrometer box X size").SetUnit("cm");
   _messenger->DeclareProperty("smSizeY", fSMSizeY, "Set spectrometer box Y size").SetUnit("cm");
   _messenger->DeclareProperty("smSizeZ", fSMSizeZ, "Set spectrometer box Z size").SetUnit("cm");
-
+  
   _messenger->DeclareProperty("magVolR", fMagVolR, "Set magnetic volume Radius").SetUnit("cm");
   _messenger->DeclareProperty("magVolZ", fMagVolZ, "Set magnetic volume Z size").SetUnit("cm");
   
   _messenger->DeclareProperty("magFieldVal", fMagFieldVal, "Set Constant Magnetic Field Value").SetUnit("tesla");
-
+  
   _messenger->DeclareProperty("smLayerNo", fSMLayerNo, "Set spectrometer layers number");
   _messenger->DeclareProperty("layerFDist", fLayerFDistance, "Set sm Front inter-layer distance").SetUnit("cm");
   _messenger->DeclareProperty("layerEDist", fLayerEDistance, "Set sm Exit inter-layer distance").SetUnit("cm");
   _messenger->DeclareProperty("layerFGap", fLayerFGap, "Set Front layer-magvol distance").SetUnit("cm");
   _messenger->DeclareProperty("layerEGap", fLayerEGap, "Set Exit layer-magvol distance").SetUnit("cm");
-
+  
   
   //  detMessenger = new DetectorMessenger(this);
 }
@@ -118,7 +130,7 @@ DetectorConstruction::~DetectorConstruction() {
 
 void DetectorConstruction::DefineMaterials() {
   //G4NistManager* man = G4NistManager::Instance();
-
+  
   //  G4bool isotopes = false;
   //  G4Element* Si = man->FindOrBuildElement("Si", isotopes);
 }
@@ -142,43 +154,42 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
   G4double world_diameter = 1000. * cm;
   G4Sphere* solidWorld = new G4Sphere("World", 0., 0.5 * world_diameter, 0., 2*pi, 0., pi); //For compatibility with VGM [V.F.]
-
+  
   G4LogicalVolume* logicWorld = new G4LogicalVolume(solidWorld,          //its solid
-      default_mat,         //its material
-      "World");            //its name
-
+						    default_mat,         //its material
+						    "World");            //its name
+  
   logicWorld->SetVisAttributes(G4VisAttributes::Invisible);
-
+  
   fPhysicalWorld = new G4PVPlacement(0,                     //no rotation
-      G4ThreeVector(),       //at (0,0,0)
-      logicWorld,            //its logical volume
-      "World",               //its name
-      0,                     //its mother  volume
-      false,                 //no boolean operation
-      0,                     //copy number
-      fCheckOverlaps);       // checking overlaps
-
-
+				     G4ThreeVector(),       //at (0,0,0)
+				     logicWorld,            //its logical volume
+				     "World",               //its name
+				     0,                     //its mother  volume
+				     false,                 //no boolean operation
+				     0,                     //copy number
+				     fCheckOverlaps);       // checking overlaps
+  
   //  G4double l = 0.0001 * mm; //tolerance  
-
+  
   //// HARDCODED ALIGNMENT -> to refine
   //// maybe with a tbitsarray like stuff?
   
   // G4cout<< "**** warning-> HARDCODED DETECTOR ALIGNMENT (X=0 Y=1): ";
   // layers alignment (X=0 Y=1)
-
+  
   
   G4cout<< "**** STRING DETECTOR ALIGNMENT: "<<fAlign<<G4endl;
   //int * al = new int[fAlign.size()];
   //std::copy(fAlign.begin(), fAlign.end(), al); 
-
+  
   G4int tAlign[fTargetLayerNo];
   for(int it=0;it<fTargetLayerNo;it++){
     tAlign[it]=fAlign[it]-'0';
     //tAlign[it]=it%2==0?0:1;
     G4cout<<tAlign[it]<<" ";
-   }
-
+  }
+  
   // spectrometer alignment (X=0 Y=1)
   G4int sAlign[fSMLayerNo];
   sAlign[0]=1;
@@ -188,23 +199,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     G4cout<<sAlign[is]<<" ";
   }
   G4cout<<G4endl;
-
   
   G4RotationMatrix* myRotation = new G4RotationMatrix();
   myRotation->rotateX(0.*deg);
   myRotation->rotateY(0.*deg);
   myRotation->rotateZ(90.*deg);
   G4double layerMiniX = fTileX * fLayerMiniTileNo;  // x of mini ladder 
-  G4double layerShortX = fTileX * fLayerShortTileNo; // x of short ladder
-  G4double layerLongX = fTileX * fLayerLongTileNo; // x of long ladder
-  G4double layerDampeX = fTileX * fLayerDampeTileNo; // x of dampe ladder 
-      
-  G4double siStripX = fTileX;
-  G4double siStripY = fTileSPitch;
-  G4double siStripZ = fTileThickness;
+  G4double layerShortX = fAMSTileX * fLayerShortTileNo; // x of short ladder
+  G4double layerLongX = fAMSTileX * fLayerLongTileNo; // x of long ladder
+  G4double layerDampeX = fDAMPETileX * fLayerDampeTileNo; // x of dampe ladder 
 
+  //TARGET
+  
   G4double targetLayerFirstZ = fTargetLayerOffsetZ-0.5*fTargetSizeZ;
-
    
   G4Box* targetMother = new G4Box("target", 0.5 * fTargetSizeX, 0.5 * (fTargetSizeY), 0.5 * (fTargetSizeZ));
   G4LogicalVolume* targetLog = new G4LogicalVolume(targetMother, default_mat, "target");
@@ -222,9 +229,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   
   // check if needed
   /*
-  G4Box* padMother = new G4Box("pad", 0.5 * (pad_x + l), 0.5 * (pad_y + l), 0.5 * (pad_z + l));
-  G4LogicalVolume* padLogic = new G4LogicalVolume(padMother, default_mat, "pad");
-  new G4PVPlacement(0,                     //no rotation
+    G4Box* padMother = new G4Box("pad", 0.5 * (pad_x + l), 0.5 * (pad_y + l), 0.5 * (pad_z + l));
+    G4LogicalVolume* padLogic = new G4LogicalVolume(padMother, default_mat, "pad");
+    new G4PVPlacement(0,                     //no rotation
     G4ThreeVector(),       //at (0,0,0)
     padLogic,              //its logical volume
     "pad",                 //its name
@@ -235,63 +242,73 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   */
   
   G4Box* siLayerMini = new G4Box("siLayerMini", 0.5 * layerMiniX, 0.5 * fTileY, 0.5 * fTileThickness);
-  G4Box* siLayerShort = new G4Box("siLayerShort", 0.5 * layerShortX, 0.5 * fTileY, 0.5 * fTileThickness);
-  G4Box* siLayerLong = new G4Box("siLayerLong", 0.5 * layerLongX, 0.5 * fTileY, 0.5 * fTileThickness);
- G4Box* siLayerDampe = new G4Box("siLayerDampe", 0.5 * layerDampeX, 0.5 * fTileY, 0.5 * fTileThickness);
+  G4Box* siLayerShort = new G4Box("siLayerShort", 0.5 * layerShortX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
+  G4Box* siLayerLong = new G4Box("siLayerLong", 0.5 * layerLongX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
+  G4Box* siLayerDampe = new G4Box("siLayerDampe", 0.5 * layerDampeX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
   
-
   G4LogicalVolume* siLayerMiniLog = new G4LogicalVolume(siLayerMini, silicon, "siLayerMiniLog");
   G4LogicalVolume* siLayerShortLog = new G4LogicalVolume(siLayerShort, silicon, "siLayerShortLog");
   G4LogicalVolume* siLayerLongLog = new G4LogicalVolume(siLayerLong, silicon, "siLayerLongLog");
   G4LogicalVolume* siLayerDampeLog = new G4LogicalVolume(siLayerDampe, silicon, "siLayerDampeLog");
   
-  for (G4int iln = 0; iln <fTargetLayerNo ; iln++)
-    {
-      if (iln<fTargetLayerMiniNo)
-	new G4PVPlacement(!tAlign[iln]?myRotation:0,G4ThreeVector(0.,0.,targetLayerFirstZ
-								  +fTileThickness/2 
-								  +(iln)*fTargetLayerDistance),
-			  siLayerMiniLog,
-			  "siLayerMiniPhys",
-			  targetLog,
+  for (G4int iln = 0; iln <fTargetLayerNo ; iln++) {
+    G4PVPlacement* pvpl = NULL;
+    //MD: il targetLayerFirstZ+fTileThickness/2 e' sbagliato dato che dipende dallo spessore del primo
+    //forse targetLayerFirstZ deve essere la posizione centrale e il primo e' posizionato a -fTileThickness/2
+    if (iln<fTargetLayerMiniNo) {
+      pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
+			       G4ThreeVector(0.,
+					     0.,
+					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+			       siLayerMiniLog,
+			       "siLayerMiniPhys",
+			       targetLog,
 			  false,	
-			  iln,
-			  false);
-      else if (iln-fTargetLayerMiniNo<fTargetLayerShortNo)
-	new G4PVPlacement(!tAlign[iln]?myRotation:0,G4ThreeVector(tAlign[iln]*fLayersOffsetY,(!tAlign[iln])*fLayersOffsetX,targetLayerFirstZ
-								  +fTileThickness/2 
-								  +(iln)*fTargetLayerDistance),
-			  siLayerShortLog,
-			  "siLayerShortPhys",
-			  targetLog,
-			  false,	
-			  iln,
-			  false);
-      
-      else
-	new G4PVPlacement(!tAlign[iln]?myRotation:0,G4ThreeVector(tAlign[iln]*fLayersOffsetY,(!tAlign[iln])*fLayersOffsetX,targetLayerFirstZ
-								  +fTileThickness/2 
-								  +(iln)*fTargetLayerDistance),
-			  siLayerDampeLog,
-			  "siLayerDampePhys",
-			  targetLog,
-			  false,	
-			  iln,
-			  false);
+			       iln,
+			       false);
     }
+    else if (iln-fTargetLayerMiniNo<fTargetLayerShortNo) {
+      pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
+			       G4ThreeVector(tAlign[iln]*fLayersOffsetY,
+					     (!tAlign[iln])*fLayersOffsetX,
+					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+			       siLayerShortLog,
+			       "siLayerShortPhys",
+			       targetLog,
+			       false,	
+			       iln,
+			       false);
+    }
+    else {
+      pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
+			       G4ThreeVector(tAlign[iln]*fLayersOffsetY,
+					     (!tAlign[iln])*fLayersOffsetX,
+					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+			       siLayerDampeLog,
+			       "siLayerDampePhys",
+			       targetLog,
+			       false,	
+			       iln,
+			       false);
+    }
+    if (pvpl) printf("layer=%d) %s\n", iln, pvpl->GetName().data());
+  }
   
 
   G4Box* siTile = new G4Box("siTile", 0.5 * fTileX, 0.5 * fTileY, 0.5 * fTileThickness);
-  G4LogicalVolume* siTileLog = new G4LogicalVolume(siTile, silicon, "siTileLog");
-  
-  G4PVReplica * layerMiniReplica = new G4PVReplica("miniReplica", siTileLog,siLayerMiniLog,kXAxis, fLayerMiniTileNo, fTileX, 0);
-  
-  G4PVReplica * layerShortReplica = new G4PVReplica("shortReplica", siTileLog,siLayerShortLog,kXAxis, fLayerShortTileNo, fTileX, 0);
+  G4LogicalVolume* siTileLog = new G4LogicalVolume(siTile, silicon, "siTileLog");  
+  G4PVReplica * layerMiniReplica = new G4PVReplica("miniReplica", siTileLog, siLayerMiniLog, kXAxis, fLayerMiniTileNo, fTileX, 0);
 
-  G4PVReplica * layerLongReplica = new G4PVReplica("longReplica", siTileLog,siLayerLongLog,kXAxis, fLayerLongTileNo, fTileX, 0);
+  G4Box* siAMSTile = new G4Box("siAMSTile", 0.5 * fAMSTileX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
+  G4LogicalVolume* siAMSTileLog = new G4LogicalVolume(siAMSTile, silicon, "siAMSTileLog");
+  G4PVReplica * layerShortReplica = new G4PVReplica("shortReplica", siAMSTileLog, siLayerShortLog, kXAxis, fLayerShortTileNo, fAMSTileX, 0);
+  G4PVReplica * layerLongReplica = new G4PVReplica("longReplica", siAMSTileLog, siLayerLongLog, kXAxis, fLayerLongTileNo, fAMSTileX, 0);
 
-  G4PVReplica * layerDampeReplica = new G4PVReplica("dampeReplica", siTileLog,siLayerDampeLog,kXAxis, fLayerDampeTileNo, fTileX, 0);
+  G4Box* siDAMPETile = new G4Box("siTile", 0.5 * fDAMPETileX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
+  G4LogicalVolume* siDAMPETileLog = new G4LogicalVolume(siDAMPETile, silicon, "siDAMPETileLog");
+  G4PVReplica * layerDampeReplica = new G4PVReplica("dampeReplica", siDAMPETileLog, siLayerDampeLog, kXAxis, fLayerDampeTileNo, fDAMPETileX, 0);
 
+  //SPECTROMETER
   
   G4double spectrometerPosZ = fTargetSizeZ/2. + fSMSizeZ/2. + fSMOffsetZ;
   
@@ -309,9 +326,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   
 
   
-  G4double spectrometerFPosZ = - fMagVolZ/2. - fLayerFGap - fTileThickness/2.- fLayerFDistance;
-  G4double spectrometerEPosZ = fMagVolZ/2. + fLayerEGap + fTileThickness/2. ;
-
+  G4double spectrometerFPosZ = - fMagVolZ/2. - fLayerFGap - fAMSTileThickness/2.- fLayerFDistance;
+  G4double spectrometerEPosZ = fMagVolZ/2. + fLayerEGap + fAMSTileThickness/2. ;
     
   // HARDCODED LAYER NUMBER -->to change
   // Front layers PhysVol 
@@ -327,9 +343,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   new G4PVPlacement(!sAlign[3]?myRotation:0,G4ThreeVector((sAlign[3])*fLayersOffsetY,(!sAlign[3])*fLayersOffsetX,spectrometerEPosZ+fLayerEDistance),siLayerLongLog,"siLayerE2Phys",spectrometerLog,false,fTargetLayerNo+3,false);
   // 
 
-
-  G4int nSStrips = int(fTileY/fTileSPitch); // = siStripY
-  G4int nKStrips = int(fTileY/fTileKPitch);
+  G4double siStripX = fTileX;
+  G4double siStripY = fTileSPitch;
+  G4double siStripZ = fTileThickness;
+  
+  G4int nSStrips = int(fAMSTileY/fAMSTileSPitch); // = siStripY
+  G4int nKStrips = int(fAMSTileY/fAMSTileKPitch);
   
   G4Box* siStrip = new G4Box("siStrip", 0.5 * siStripX, 0.5 * siStripY, 0.5 * siStripZ);
   G4LogicalVolume* siStripLog = new G4LogicalVolume(siStrip, silicon, "siStripLog");
@@ -391,7 +410,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   G4VisAttributes * Yellow     = new G4VisAttributes(G4Colour(255/255., 255/255.,0/255.));     
   //  siStripLog->SetVisAttributes(Yellow);
   siTileLog->SetVisAttributes(Yellow);
-
+  siAMSTileLog->SetVisAttributes(Yellow);
+  siDAMPETileLog->SetVisAttributes(Yellow);
   
   // try parameterization
   //  siLayerParam = new SiLayerParameterisation (npads, zfirst, paddist, pad_z);
@@ -407,20 +427,20 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 // void DetectorConstruction::ConstructSDandField() {
-  //G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
+//G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
 
-  // declare crystal as a MultiFunctionalDetector scorer
-  //
-  /*
-   G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
-   G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
-   cryst->RegisterPrimitive(primitiv1);
-   SetSensitiveDetector("Crystal",cryst);
-   */
-  //G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
-  //G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
-  //cryst->RegisterPrimitive(primitiv1);
-  //SetSensitiveDetector("Crystal", cryst);
+// declare crystal as a MultiFunctionalDetector scorer
+//
+/*
+  G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
+  G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
+  cryst->RegisterPrimitive(primitiv1);
+  SetSensitiveDetector("Crystal",cryst);
+*/
+//G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
+//G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
+//cryst->RegisterPrimitive(primitiv1);
+//SetSensitiveDetector("Crystal", cryst);
 // }
 
 void DetectorConstruction::updateGeometry() {
@@ -443,6 +463,16 @@ bool DetectorConstruction::ExportParameters() {
   result = result && ExportIntParameter("targetLayerShortNo", fTargetLayerShortNo);
   result = result && ExportIntParameter("targetLayerDampeNo", fTargetLayerDampeNo);
   result = result && ExportRealParameter("targetLayerDistance", fTargetLayerDistance / cm);
+  result = result && ExportRealParameter("AMStileX", fAMSTileX / cm);
+  result = result && ExportRealParameter("AMStileY", fAMSTileY / cm);
+  result = result && ExportRealParameter("AMStileThickness", fAMSTileThickness / mm);
+  result = result && ExportRealParameter("AMStileSPitch", fAMSTileSPitch / mm);
+  result = result && ExportRealParameter("AMStileKPitch", fAMSTileKPitch / mm);
+  result = result && ExportRealParameter("DAMPEtileX", fDAMPETileX / cm);
+  result = result && ExportRealParameter("DAMPEtileY", fDAMPETileY / cm);
+  result = result && ExportRealParameter("DAMPEtileThickness", fDAMPETileThickness / mm);
+  result = result && ExportRealParameter("DAMPEtileSPitch", fDAMPETileSPitch / mm);
+  result = result && ExportRealParameter("DAMPEtileKPitch", fDAMPETileKPitch / mm);
   result = result && ExportRealParameter("tileX", fTileX / cm);
   result = result && ExportRealParameter("tileY", fTileY / cm);
   result = result && ExportRealParameter("tileThickness", fTileThickness / mm);
@@ -471,17 +501,16 @@ const std::string DetectorConstruction::GetVersion() {
   return "1.0";
 }
 
-
 /*
-void DetectorConstruction::SetMagFieldVal(G4double v)
-{
+  void DetectorConstruction::SetMagFieldVal(G4double v)
+  {
   printf("Setting constant value of magnetic field to %f Tesla \n",v/tesla);
   fMagField->SetFieldValue(G4ThreeVector(v,0.,0.));
-}
+  }
 */
 /*void DetectorConstruction::SetTargetX(G4double tx)
-{
+  {
   printf("Setting target size X to %f cm \n",tx);
   det->SetTargetX(tx);
-}
+  }
 */

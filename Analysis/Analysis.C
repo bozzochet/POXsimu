@@ -47,6 +47,130 @@ Angle(const TVector3& left, const TVector3& right)
 
 */
 
+// Event vars-----------------------
+int nInt = 0;
+int iEv = 0;
+int nHits = 0;
+int ppHit = -1;
+double eLastZ = -1.;
+double pLastZ = -1.;
+  
+const Int_t nMaxHits = 100;
+
+//  Double_t zPath[nMaxHits];
+Double_t gEne=-9999; 
+Double_t zPath=-9999;
+//  Double_t xCoord[nMaxHits];
+//  Double_t yCoord[nMaxHits];
+//  Double_t zCoord[nMaxHits];
+//  Double_t xMom[nMaxHits];
+//Double_t yMom[nMaxHits];
+//Double_t zMom[nMaxHits];
+Double_t eeDep[nMaxHits]={0.};
+Double_t peDep[nMaxHits]={0.};
+int chX[nMaxHits]={0};
+int chY[nMaxHits]={0}; 
+
+Int_t hPart[nMaxHits]={0};
+Int_t hVol[nMaxHits]={0};
+Double_t hVolZ[nMaxHits]={0.};
+    
+Double_t exCoord[nMaxHits]={0.};
+Double_t eyCoord[nMaxHits]={0.};
+Double_t ezCoord[nMaxHits]={0.};
+Double_t eexxCoord=-9999.;
+Double_t eexyCoord=-9999.;
+Double_t eexzCoord=-9999.;
+//  Double_t eexxCoord[nMaxHits];
+//  Double_t eexyCoord[nMaxHits];
+//  Double_t eexzCoord[nMaxHits];  
+Double_t exMom[nMaxHits]={0.};
+Double_t eyMom[nMaxHits]={0.};
+Double_t ezMom[nMaxHits]={0.};
+//Double_t eEne[nMaxHits];
+Double_t eEne=-9999.;
+int echX[nMaxHits]={0};
+int echY[nMaxHits]={0}; 
+
+Double_t pxCoord[nMaxHits]={0.};
+Double_t pyCoord[nMaxHits]={0.};
+Double_t pzCoord[nMaxHits]={0.};
+//  Double_t pexxCoord[nMaxHits];
+//  Double_t pexyCoord[nMaxHits];
+//  Double_t pexzCoord[nMaxHits];
+Double_t pexxCoord=-9999.;
+Double_t pexyCoord=-9999.;
+Double_t pexzCoord=-9999.;
+Double_t pxMom[nMaxHits]={0.};
+Double_t pyMom[nMaxHits]={0.};
+Double_t pzMom[nMaxHits]={0.};
+Double_t pEne=-9999.;
+int pchX[nMaxHits]={0};
+int pchY[nMaxHits]={0};
+//----------------------------------
+
+void CleanEvent(int nMaxHits){
+
+  nInt = 0;
+  iEv = 0;
+  nHits = 0;
+  ppHit = -1;
+  eLastZ = -1.;
+  pLastZ = -1.;
+
+  //  Double_t zPath[nMaxHits];
+  gEne=-9999; 
+  zPath=-9999;
+  //  Double_t xCoord[nMaxHits];
+  //  Double_t yCoord[nMaxHits];
+  //  Double_t zCoord[nMaxHits];
+  //  Double_t xMom[nMaxHits];
+  //Double_t yMom[nMaxHits];
+  //Double_t zMom[nMaxHits];
+  std::fill_n(eeDep, nMaxHits, 0.);
+  std::fill_n(peDep, nMaxHits, 0.);
+  std::fill_n(chX, nMaxHits, 0);
+  std::fill_n(chY, nMaxHits, 0);
+  
+  std::fill_n(hPart, nMaxHits, 0);
+  std::fill_n(hVol, nMaxHits, 0);
+  std::fill_n(hVolZ, nMaxHits, 0.);
+    
+  std::fill_n(exCoord, nMaxHits, 0.);
+  std::fill_n(eyCoord, nMaxHits, 0.);
+  std::fill_n(ezCoord, nMaxHits, 0.);
+  eexxCoord=-9999.;
+  eexyCoord=-9999.;
+  eexzCoord=-9999.;
+  //  Double_t eexxCoord[nMaxHits];
+  //  Double_t eexyCoord[nMaxHits];
+  //  Double_t eexzCoord[nMaxHits];  
+  std::fill_n(exMom, nMaxHits, 0.);
+  std::fill_n(eyMom, nMaxHits, 0.);
+  std::fill_n(ezMom, nMaxHits, 0.);
+  //Double_t eEne[nMaxHits];
+  eEne=-9999.;
+  std::fill_n(echX, nMaxHits, 0);
+  std::fill_n(echY, nMaxHits, 0);
+
+  std::fill_n(pxCoord, nMaxHits, 0.);
+  std::fill_n(pyCoord, nMaxHits, 0.);
+  std::fill_n(pzCoord, nMaxHits, 0.);
+  //  Double_t pexxCoord[nMaxHits];
+  //  Double_t pexyCoord[nMaxHits];
+  //  Double_t pexzCoord[nMaxHits];
+  pexxCoord=-9999.;
+  pexyCoord=-9999.;
+  pexzCoord=-9999.;
+  std::fill_n(pxMom, nMaxHits, 0.);
+  std::fill_n(pyMom, nMaxHits, 0.);
+  std::fill_n(pzMom, nMaxHits, 0.);
+  pEne=-9999.;
+  std::fill_n(pchX, nMaxHits, 0);
+  std::fill_n(pchY, nMaxHits, 0);
+  
+}
+
 void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   static const std::string routineName("simpleanalysis");
 
@@ -75,33 +199,43 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   const GGSTGeoParams *geoParams = reader.GetGeoParams();
   if (geoParams) {
     std::cout << "*** Geometry parameters:\n";
-    std::cout << "Target Layer Number:    " << geoParams->GetIntGeoParam("targetLayerNo") << "\n";
-    std::cout << "Spectrometer Layer Number:    " << geoParams->GetIntGeoParam("smLayerNo") << "\n";
-    std::cout << "Sensor X Dimension:    " << geoParams->GetRealGeoParam("tileX") << " cm\n";
-    std::cout << "Sensor Y Dimension:    " << geoParams->GetRealGeoParam("tileY") << " cm\n";  
-      std::cout << "Sensor Thickness:    " << geoParams->GetRealGeoParam("tileThickness") << " mm\n";
-      std::cout << "Sensor Pitch:    " << geoParams->GetRealGeoParam("tileSPitch") << " mm\n";
+    std::cout << "Target Layers Number:    " << geoParams->GetIntGeoParam("targetLayerNo") << "\n";
+    std::cout << "\"New\" Sensor X Dimension:    " << geoParams->GetRealGeoParam("tileX") << " cm\n";
+    std::cout << "\"New\" Sensor Y Dimension:    " << geoParams->GetRealGeoParam("tileY") << " cm\n";  
+    std::cout << "\"New\" Sensor Thickness:    " << geoParams->GetRealGeoParam("tileThickness") << " mm\n";
+    std::cout << "\"New\" Sensor S Pitch:    " << geoParams->GetRealGeoParam("tileSPitch") << " mm\n";
+    std::cout << "\"New\" Sensor K Pitch:    " << geoParams->GetRealGeoParam("tileKPitch") << " mm\n";
+    std::cout << "AMS Sensor X Dimension:    " << geoParams->GetRealGeoParam("AMStileX") << " cm\n";
+    std::cout << "AMS Sensor Y Dimension:    " << geoParams->GetRealGeoParam("AMStileY") << " cm\n";  
+    std::cout << "AMS Sensor Thickness:    " << geoParams->GetRealGeoParam("AMStileThickness") << " mm\n";
+    std::cout << "AMS Sensor S Pitch:    " << geoParams->GetRealGeoParam("AMStileSPitch") << " mm\n";
+    std::cout << "AMS Sensor K Pitch:    " << geoParams->GetRealGeoParam("AMStileKPitch") << " mm\n";
+    std::cout << "DAMPE Sensor X Dimension:    " << geoParams->GetRealGeoParam("DAMPEtileX") << " cm\n";
+    std::cout << "DAMPE Sensor Y Dimension:    " << geoParams->GetRealGeoParam("DAMPEtileY") << " cm\n";  
+    std::cout << "DAMPE Sensor Thickness:    " << geoParams->GetRealGeoParam("DAMPEtileThickness") << " mm\n";
+    std::cout << "DAMPE Sensor S Pitch:    " << geoParams->GetRealGeoParam("DAMPEtileSPitch") << " mm\n";
+    std::cout << "DAMPE Sensor K Pitch:    " << geoParams->GetRealGeoParam("DAMPEtileKPitch") << " mm\n";
+    std::cout << "Spectrometer Layers Number:    " << geoParams->GetIntGeoParam("smLayerNo") << "\n";
     std::cout << "Mag Field Value:    " << geoParams->GetRealGeoParam("magFieldVal") << " Tesla\n";
     std::cout << "Mag Field Z:    " << geoParams->GetRealGeoParam("magVolZ") << " cm\n";
   }
   std::cout << std::endl;
-
 
   bool DB=false;  
   // GEOMETRYPARS TO GET FROM READER
 
   // double mside = 7.04; // cm sensor measurement side length
   //double pitch = 0.0110; // cm sensor pitch
-    
+
+  //MD: FIX ME
   double msidex = geoParams->GetRealGeoParam("tileX"); // cm sensor measurement side length
   double msidey = geoParams->GetRealGeoParam("tileY"); // cm sensor measurement side length
   double pitch = geoParams->GetRealGeoParam("tileSPitch")/10.; // cm sensor pitch
 
-  //  double offsetx = geoParams->GetRealGeoParam("layersOffsetX"); // cm offset X
+  // double offsetx = geoParams->GetRealGeoParam("layersOffsetX"); // cm offset X
   // double offsety = geoParams->GetRealGeoParam("layersOffsetY"); // cm offset Y
 
- 
-  
+  //----------------------------------------------------------------------------------------------------------------------------------
   // Create the output file
   TFile *outFile = TFile::Open(outputFileName, "RECREATE");
   if (!outFile || outFile->IsZombie()) {
@@ -112,9 +246,11 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   // Create and retrieve the hits sub-reader
   GGSTHitsReader *hReader = reader.GetReader<GGSTHitsReader>();
   // Set which hit detectors are to be read
-  //  hReader->SetDetector("siLayerMiniLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  // hReader->SetDetector("siLayerMiniLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   // hReader->SetDetector("siLayerShortLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   // hReader->SetDetector("siLayerLongLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  hReader->SetDetector("siAMSTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  hReader->SetDetector("siDAMPETileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   hReader->SetDetector("siTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
 
   //   hReader->SetDetector("siStripLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
@@ -151,121 +287,21 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 
   int nLayers = geoParams->GetIntGeoParam("targetLayerNo")+geoParams->GetIntGeoParam("smLayerNo");
 
-  /*
+
   Int_t xyAlign[nLayers];
   string sAlign=geoParams->GetStringGeoParam("layerAlignment");
-  for (int isn=0; isn<nLayers; isn++)
+  for (int isn=0; isn<nLayers; isn++) {
     xyAlign[isn]=sAlign[isn]-'0';
-  */
+    //    printf("xyAlign[%d]=%d\n", isn, xyAlign[isn]);
+  }
+  /*
   // manual alignment for older files
   Int_t xyAlign[14]={0,1,0,1,0,1,0,1,0,1,1,1,1,1};
   //Int_t xyAlign[24]={0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1};
+  */
   int nEvts = 0;
   
-  // Event loop
-  int nInt = 0;
-  int iEv = 0;
-  int nHits = 0;
-  int ppHit = -1;
-  double eLastZ = -1.;
-  double pLastZ = -1.;
-  
-  const Int_t nMaxHits = 100;
-
-  //  Double_t zPath[nMaxHits];
-  Double_t gEne=-9999; 
-  Double_t zPath=-9999;
-  //  Double_t xCoord[nMaxHits];
-  //  Double_t yCoord[nMaxHits];
-  //  Double_t zCoord[nMaxHits];
-  //  Double_t xMom[nMaxHits];
-  //Double_t yMom[nMaxHits];
-  //Double_t zMom[nMaxHits];
-  Double_t eeDep[nMaxHits]={0.};
-  Double_t peDep[nMaxHits]={0.};
-  int chX[nMaxHits]={0};
-  int chY[nMaxHits]={0}; 
-
-
-  Int_t hPart[nMaxHits]={0};
-  Int_t hVol[nMaxHits]={0};
-  Double_t hVolZ[nMaxHits]={0.};
-  
-    
-  Double_t exCoord[nMaxHits]={0.};
-  Double_t eyCoord[nMaxHits]={0.};
-  Double_t ezCoord[nMaxHits]={0.};
-  Double_t eexxCoord=-9999.;
-  Double_t eexyCoord=-9999.;
-  Double_t eexzCoord=-9999.;
-  //  Double_t eexxCoord[nMaxHits];
-  //  Double_t eexyCoord[nMaxHits];
-  //  Double_t eexzCoord[nMaxHits];  
-  Double_t exMom[nMaxHits]={0.};
-  Double_t eyMom[nMaxHits]={0.};
-  Double_t ezMom[nMaxHits]={0.};
-  //Double_t eEne[nMaxHits];
-  Double_t eEne=-9999.;
-  int echX[nMaxHits]={0};
-  int echY[nMaxHits]={0}; 
-
-  Double_t pxCoord[nMaxHits]={0.};
-  Double_t pyCoord[nMaxHits]={0.};
-  Double_t pzCoord[nMaxHits]={0.};
-  //  Double_t pexxCoord[nMaxHits];
-  //  Double_t pexyCoord[nMaxHits];
-  //  Double_t pexzCoord[nMaxHits];
-  Double_t pexxCoord=-9999.;
-  Double_t pexyCoord=-9999.;
-  Double_t pexzCoord=-9999.;
-  Double_t pxMom[nMaxHits]={0.};
-  Double_t pyMom[nMaxHits]={0.};
-  Double_t pzMom[nMaxHits]={0.};
-  Double_t pEne=-9999.;
-  int pchX[nMaxHits]={0};
-  int pchY[nMaxHits]={0};
-
-  /*  for (int ii=0;ii<nMaxHits;ii++){
-    
-  zPath[ii]=-9999; 
-  xCoord[ii]=-9999;
-  yCoord[ii]=-9999;
-  zCoord[ii]=-9999;
-  xMom[ii]=-9999;
-  yMom[ii]=-9999;
-  zMom[ii]=-9999;
-  eDep[ii]=-9999;
-  chX[ii]=-9999;
-  chY[ii]=-9999; 
-
-  exCoord[ii]=-9999;
-  eyCoord[ii]=-9999;
-  ezCoord[ii]=-9999;
-  eexxCoord[ii]=-9999;
-  eexyCoord[ii]=-9999;
-  eexzCoord[ii]=-9999;
-  exMom[ii]=-9999;
-  eyMom[ii]=-9999;
-  ezMom[ii]=-9999;
-  eEne[ii]=-9999;
-  echX[ii]=-9999;
-  echY[ii]=-9999; 
-  
-  pxCoord[ii]=-9999;
-  pyCoord[ii]=-9999;
-  pzCoord[ii]=-9999;
-  pexxCoord[ii]=-9999;
-  pexyCoord[ii]=-9999;
-  pexzCoord[ii]=-9999;
-  pxMom[ii]=-9999;
-  pyMom[ii]=-9999;
-  pzMom[ii]=-9999;
-  pEne[ii]=-9999;
-  pchX[ii]=-9999;
-  pchY[ii]=-9999;
-  }  
-  */
-
+  //------------------------------------------------------
 
   TTree *runTree =  new TTree("runTree","tree of mcrun");
   runTree->Branch("nLayers",&nLayers,"nLayers/I");
@@ -338,13 +374,14 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   nEvts=reader.GetEntries();
   
   COUT(INFO) << "Begin loop over " << nEvts << " events" << ENDL;
-
   
   for (iEv = 0; iEv < nEvts; iEv++) {
-
   //for (int iEv = 0; iEv < 33; iEv++) {
-    reader.GetEntry(iEv); // Reads all the data objects whose sub-readers have already been created
 
+    //    CleanEvent(nMaxHits);
+    
+    reader.GetEntry(iEv); // Reads all the data objects whose sub-readers have already been created
+    
     // Retrieve inelastic interaction information
     GGSTHadrIntInfo *intInfo = hadrReader->GetInelastic(); // Get info about the inelastic interaction of the primary particle
     // Check if the inelastic interaction actually happened for this event
@@ -358,56 +395,20 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     // Compute total energy release
     GGSTIntHit* thisHit;
     GGSTPartHit* thisPHit;
-    //    int nMHits = hReader->GetNHits("siLayerMiniLog"); //Number of hit siLayers for current event
-    // int nSHits = hReader->GetNHits("siLayerShortLog"); //Number of hit siLayers for current event
-
-    // int nHits = hReader->GetNHits("siStripLog"); //Number of hit siLayers for current event
-
-    nHits = hReader->GetNHits("siTileLog"); //Number of hit siLayers for current event
     
+    // int nMHits = hReader->GetNHits("siLayerMiniLog"); //Number of hit siLayers for current event
+    // int nSHits = hReader->GetNHits("siLayerShortLog"); //Number of hit siLayers for current event
+    // int nHits = hReader->GetNHits("siStripLog"); //Number of hit siLayers for current event
+    nHits = hReader->GetNHits("siTileLog"); //Number of hit siLayers for current event
+    // nHits += hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
+    // nHits += hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
+    std::cout<<"EVT "<<iEv<<" NHITS "<<nHits<<std::endl;
     //nHitHisto->Fill(nHits);
+    
     float totEDep = 0.;   
    
-    std::cout<<"EVT "<<iEv<<" NHITS "<<nHits<<std::endl;
-    for(int ih=0;ih<nHits;ih++){
-      exCoord[ih]=0.;
-      eyCoord[ih]=0.;
-      ezCoord[ih]=0.;
-      eeDep[ih]=0.;
-      peDep[ih]=0.;
-      chX[ih]=0;
-      chY[ih]=0; 
-      exMom[ih]=0.;
-      eyMom[ih]=0.;
-      ezMom[ih]=0.;
-      echX[ih]=0;
-      echY[ih]=0; 
-      
-      pxCoord[ih]=0.;
-      pyCoord[ih]=0.;
-      pzCoord[ih]=0.;
-      pxMom[ih]=0.;
-      pyMom[ih]=0.;
-      pzMom[ih]=0.;
-      pchX[ih]=0;
-      pchY[ih]=0;
-    }
     // efficiency calc
-    bool pprod=false;
-    ppHit=-1;
-    eLastZ=-1.;
-    pLastZ=-1.;
-    
-    zPath=-9999;
-    eEne=-9999;
-    eexxCoord=-9999;
-    eexyCoord=-9999;
-    eexzCoord=-9999;
-    pEne=-9999;
-    pexxCoord=-9999;
-    pexyCoord=-9999;
-    pexzCoord=-9999;
- 
+    bool pprod=false; 
 
     // true Y bending
     //double mom=1.;  // mom in GV (not geant4 ene

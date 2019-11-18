@@ -92,7 +92,7 @@ private:
   // target alignment (X=0 Y=1)
   // G4int tAlign[targetLayerNo]={0,0,0,0,0};
 
-  // number of mini layers
+  // number of mini ("new") layers
   G4int fTargetLayerMiniNo = 4;
   // number of short layers
   G4int fTargetLayerShortNo = 1;
@@ -101,23 +101,38 @@ private:
   // inter layer distance
   G4double fTargetLayerDistance = 3. * cm;
 
-  
   // AMS like sensors dimensions
-  G4double fTileX = 4.  * cm;
-  G4double fTileY = 7.04 * cm;
-  //G4double fTileY = 7.0 * cm;
-  G4double fTileThickness = 0.300 * mm;
+  G4double fAMSTileX = 4.  * cm;
+  G4double fAMSTileY = 7.04 * cm;
+  G4double fAMSTileThickness = 0.300 * mm;
   // sensor SPitch	
-   G4double fTileSPitch = 0.110 * mm;
-  //  G4double siTileSPitch = 0.100 * mm;
+   G4double fAMSTileSPitch = 0.110 * mm;
   // sensor KPitch
-  G4double fTileKPitch = 0.208 * mm;
+  G4double fAMSTileKPitch = 0.208 * mm;
 
-  // AMS like ladders	
+  // DAMPE like sensors dimensions
+  G4double fDAMPETileX = 9.5  * cm;
+  G4double fDAMPETileY = 9.5 * cm;
+  G4double fDAMPETileThickness = 0.320 * mm;
+  // sensor SPitch	
+   G4double fDAMPETileSPitch = 0.240 * mm;
+  // sensor KPitch
+  G4double fDAMPETileKPitch = 9.5 * cm;
+
+  // Mini ("new") like sensors dimensions
+  G4double fTileX = 9.5  * cm;
+  G4double fTileY = 9.5 * cm;
+  G4double fTileThickness = 0.150 * mm;
+  // sensor SPitch	
+   G4double fTileSPitch = 0.150 * mm;
+  // sensor KPitch
+  G4double fTileKPitch = 9.5 * cm;
+  
+  // number of sensors per ladder
   G4int fLayerMiniTileNo = 1;
   G4int fLayerShortTileNo = 4; 
   G4int fLayerLongTileNo = 12;
-  G4int fLayerDampeTileNo = 8; 
+  G4int fLayerDampeTileNo = 4; 
 	
   /// spectrometer and magnet
   

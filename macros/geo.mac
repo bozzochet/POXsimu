@@ -2,39 +2,48 @@
 # Configuring geometry commands #
 #########################################
 
-/Detector/layerAlignment 01010101011111			# 10+4 300 set alignment of layers X=0 Y=1
-#/Detector/layerAlignment 010101010101010101011111	# 20+4 150 set alignment of layers X=0 Y=1 
+#/Detector/layerAlignment 11111101011111			# 10+4 300 set alignment of layers X=0 Y=1 # 1st BT
+/Detector/layerAlignment 1111110101010101110			# 15+4 300 set alignment of layers X=0 Y=1 # 1st BT
+#/Detector/layerAlignment 010101010101010101011111	# 20+4 150 set alignment of layers X=0 Y=1 # 2st BT
 
 /Detector/layersOffsetX 0. cm	  		# set X alignment of layers [2.0 cm]
 /Detector/layersOffsetY 0. cm	  		# set Y alignment of layers [3.52 cm]
 
 /Detector/targetPosZ 0. cm			# set target Z pos
 
-/Detector/targetSizeX 60. cm			# set target box X size [50]
-/Detector/targetSizeY 60. cm			# set target box Y size [50]
-/Detector/targetSizeZ 60. cm			# set target box Z size [50]
+/Detector/targetSizeX 60. cm			# set target box X size [50] #MD: unused
+/Detector/targetSizeY 60. cm			# set target box Y size [50] #MD: unused
+/Detector/targetSizeZ 60. cm			# set target box Z size [50] #MD: unused
 
 /Detector/targetLayerOffsetZ 0. cm		# set target layers offset
 /Detector/targetLayerDistance 3. cm		# set target inter-layer distance
-/Detector/targetLayerNo 10			# set target layers number
-/Detector/targetLayerMiniNo 4			# set target mini-layer number
-/Detector/targetLayerShortNo 1			# set target short-layer number
+/Detector/targetLayerNo 15			# set target layers number
+/Detector/targetLayerMiniNo 5			# set target mini-layer number
+/Detector/targetLayerShortNo 5			# set target short-layer number
 /Detector/targetLayerDampeNo 5			# set target dampe-layer number
 
-#/Detector/tileX 4.0 cm				# set sensor tile X size
-#/Detector/tileY 7.04 cm			# set sensor tile Y size
-#/Detector/tileX 9.50 cm			# set sensor tile X size
-#/Detector/tileY 9.50 cm			# set sensor tile Y size
-/Detector/tileX 50.0 cm				# set sensor tile X size
-/Detector/tileY 50.0 cm				# set sensor tile Y size
-/Detector/tileThickness 0.300 mm		# set sensor tile thickness
-/Detector/tileSPitch 0.110 mm			# set sensor tile S Pitch
-/Detector/tileKPitch 0.208 mm			# set sensor tile K Pitch
+/Detector/AMStileX 4.0 cm			# [4.0] set sensor tile X size
+/Detector/AMStileY 7.04 cm			# [7.04] set sensor tile Y size
+/Detector/AMStileThickness 0.300 mm		# set sensor tile thickness
+/Detector/AMStileSPitch 0.110 mm		# set sensor tile S Pitch #MD: seems unused
+/Detector/AMStileKPitch 0.208 mm		# set sensor tile K Pitch #MD: seems unused
+
+/Detector/DAMPEtileX 9.50 cm			# [9.50] set sensor tile X size
+/Detector/DAMPEtileY 9.50 cm			# [9.50] set sensor tile Y size
+/Detector/DAMPEtileThickness 0.320 mm		# set sensor tile thickness
+/Detector/DAMPEtileSPitch 0.240 mm		# set sensor tile S Pitch #MD: seems unused
+/Detector/DAMPEtileKPitch 9.5 cm		# set sensor tile K Pitch #MD: seems unused
+
+/Detector/tileX 9.50 cm				# set sensor tile X size
+/Detector/tileY 9.50 cm				# set sensor tile Y size
+/Detector/tileThickness 0.150 mm		# set sensor tile thickness
+/Detector/tileSPitch 0.150 mm			# set sensor tile S Pitch #MD: seems unused
+/Detector/tileKPitch 9.5 cm			# set sensor tile K Pitch #MD: seems unused
 
 /Detector/layerMiniTileNo 1			# set short layer tiles number
-/Detector/layerShortTileNo 1			# [4] set short layer tiles number
-/Detector/layerLongTileNo 1			# [12] set long layer tiles number
-/Detector/layerDampeTileNo 1			# [8] set dampe layer tiles number
+/Detector/layerShortTileNo 4			# [4] set short layer tiles number
+/Detector/layerLongTileNo 12			# [12] set long layer tiles number
+/Detector/layerDampeTileNo 4			# [4] set dampe layer tiles number
 
 /Detector/smOffsetZ 0. cm			# set spectrometer box Z offset
 /Detector/smSizeX 50. cm			# set spectrometer box X size
