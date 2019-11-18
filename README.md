@@ -19,3 +19,8 @@ produces the file GGSRootOutput.root, and the .wrl files of the first 100 events
 /vis/open VRML2FILE
 ```
 line the vis.mac macro)
+
+Then, to analyze the GGS output:
+
+root [0] .L Analysis/Analysis.C 
+root [1] SimpleAnalysis("GGSRootOutput.root", "anaOut.root")
