@@ -46,7 +46,6 @@
 /GGS/generatorActions/gun/minPhi 0 deg                 # ... and an azimuthal angle between 0 ...
 /GGS/generatorActions/gun/maxPhi 360 deg               # ... and 360 deg ...
 /GGS/generatorActions/gun/position 0 0 -100 cm           # ... from a fixed point above the instrument
-
 #/GGS/generatorActions/gun/position 0 0 -17 cm           # ... from a fixed point above the instrument
 
 ##### Setup the sensitive detectors #####
@@ -72,10 +71,10 @@
 /GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
 
 /GGS/scoring/addGGSIntHitSD siAMSTileLog
-/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
+/GGS/scoring/siAMSTileLog.GGSIntHitSD/storeParticleHits true
 
 /GGS/scoring/addGGSIntHitSD siDAMPETileLog
-/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
+/GGS/scoring/siDAMPETileLog.GGSIntHitSD/storeParticleHits true
 
 ############################################################################################
 

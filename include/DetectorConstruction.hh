@@ -96,6 +96,8 @@ private:
   G4int fTargetLayerMiniNo = 4;
   // number of short layers
   G4int fTargetLayerShortNo = 1;
+    // number of long layers
+  G4int fTargetLayerLongNo = 0;
   // number of Dampe layers
   G4int fTargetLayerDampeNo = 6;
   // inter layer distance

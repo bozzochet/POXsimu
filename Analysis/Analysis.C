@@ -395,13 +395,37 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     // Compute total energy release
     GGSTIntHit* thisHit;
     GGSTPartHit* thisPHit;
-    
+
+    std::vector<GGSTIntHit*> vTIntHit;
+
+    nHits=0;
     // int nMHits = hReader->GetNHits("siLayerMiniLog"); //Number of hit siLayers for current event
     // int nSHits = hReader->GetNHits("siLayerShortLog"); //Number of hit siLayers for current event
     // int nHits = hReader->GetNHits("siStripLog"); //Number of hit siLayers for current event
-    nHits = hReader->GetNHits("siTileLog"); //Number of hit siLayers for current event
-    nHits += hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
-    nHits += hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
+    {
+      int _nHits = hReader->GetNHits("siTileLog"); //Number of hit siLayers for current event
+      for (int iHit = 0; iHit < _nHits; iHit++) {
+	thisHit = hReader->GetHit("siTileLog", iHit);
+	vTIntHit.push_back(thisHit);
+      }
+      nHits += _nHits;
+    }
+    {
+      int _nHits = hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
+      for (int iHit = 0; iHit < _nHits; iHit++) {
+	thisHit = hReader->GetHit("siAMSTileLog", iHit);
+	vTIntHit.push_back(thisHit);
+      }
+      nHits += _nHits;
+    }
+    {
+      int _nHits = hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
+      for (int iHit = 0; iHit < _nHits; iHit++) {
+	thisHit = hReader->GetHit("siDAMPETileLog", iHit);
+	vTIntHit.push_back(thisHit);
+      }
+      nHits += _nHits;
+    }
     std::cout<<"EVT "<<iEv<<" NHITS "<<nHits<<std::endl;
     //nHitHisto->Fill(nHits);
     
@@ -453,7 +477,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 
     for (int iHit = 0; iHit < nHits; iHit++) {
       hPart[iHit]=0;	
-      thisHit  = hReader->GetHit("siTileLog", iHit);
+      thisHit = vTIntHit.at(iHit);
       int nPHits= thisHit->GetNPartHits();
       
       if(nPHits>=2||pprod)

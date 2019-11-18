@@ -3,7 +3,7 @@
 #########################################
 
 #/Detector/layerAlignment 11111101011111			# 10+4 300 set alignment of layers X=0 Y=1 # 1st BT
-/Detector/layerAlignment 1111110101010101110			# 15+4 300 set alignment of layers X=0 Y=1 # 1st BT
+/Detector/layerAlignment 0101010101010101111			# 15+4 300 set alignment of layers X=0 Y=1 # 1st BT
 #/Detector/layerAlignment 010101010101010101011111	# 20+4 150 set alignment of layers X=0 Y=1 # 2st BT
 
 /Detector/layersOffsetX 0. cm	  		# set X alignment of layers [2.0 cm]
@@ -20,6 +20,7 @@
 /Detector/targetLayerNo 15			# set target layers number
 /Detector/targetLayerMiniNo 5			# set target mini-layer number
 /Detector/targetLayerShortNo 5			# set target short-layer number
+/Detector/targetLayerLongtNo 0			# set target long-layer number
 /Detector/targetLayerDampeNo 5			# set target dampe-layer number
 
 /Detector/AMStileX 4.0 cm			# [4.0] set sensor tile X size

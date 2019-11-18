@@ -93,9 +93,10 @@ GGSVGeometryConstruction(), fCheckOverlaps(false), fPhysicalWorld(NULL) {
   
   _messenger->DeclareProperty("targetLayerMiniNo", fTargetLayerMiniNo, "Set target mini-layer number");
   _messenger->DeclareProperty("targetLayerShortNo", fTargetLayerShortNo, "Set target short-layer number");
+  _messenger->DeclareProperty("targetLayerLongtNo", fTargetLayerLongNo, "Set target long-layer number");
   _messenger->DeclareProperty("targetLayerDampeNo", fTargetLayerDampeNo, "Set target Dampe-layer number");
-  _messenger->DeclareProperty("layerMiniTileNo", fLayerMiniTileNo, "Set mini-layer tiles number");
   
+  _messenger->DeclareProperty("layerMiniTileNo", fLayerMiniTileNo, "Set mini-layer tiles number");  
   _messenger->DeclareProperty("layerShortTileNo", fLayerShortTileNo, "Set short-layer tiles number");
   _messenger->DeclareProperty("layerLongTileNo", fLayerLongTileNo, "Set long-layer tiles number");
   _messenger->DeclareProperty("layerDampeTileNo", fLayerDampeTileNo, "Set dampe-layer tiles number");
@@ -150,7 +151,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   
   G4NistManager* nist = G4NistManager::Instance();
   G4Material* silicon = nist->FindOrBuildMaterial("G4_Si");
-  G4Material* default_mat = nist->FindOrBuildMaterial("G4_Galactic");
+  G4Material* default_mat = nist->FindOrBuildMaterial("G4_Galactic");//MD: is correct? do we want to put "air"?!
 
   G4double world_diameter = 1000. * cm;
   G4Sphere* solidWorld = new G4Sphere("World", 0., 0.5 * world_diameter, 0., 2*pi, 0., pi); //For compatibility with VGM [V.F.]
@@ -277,6 +278,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 			       iln,
 			       false);
     }
+    else if (iln-(fTargetLayerMiniNo+fTargetLayerShortNo)<fTargetLayerLongNo) {
+      pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
+			       G4ThreeVector(tAlign[iln]*fLayersOffsetY,
+					     (!tAlign[iln])*fLayersOffsetX,
+					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+			       siLayerLongLog,
+			       "siLayerLongPhys",
+			       targetLog,
+			       false,	
+			       iln,
+			       false);
+    }
     else {
       pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
 			       G4ThreeVector(tAlign[iln]*fLayersOffsetY,
@@ -352,7 +365,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   G4LogicalVolume* siStripLog = new G4LogicalVolume(siStrip, silicon, "siStripLog");
 
   // G4PVReplica * siStripReplica = new G4PVReplica("stripReplica", siStripLog, siTileLog, kYAxis, nSStrips, siStripY, 0);
-  
 
   // magnet vol
   
@@ -459,6 +471,7 @@ bool DetectorConstruction::ExportParameters() {
   result = result && ExportIntParameter("targetLayerNo", fTargetLayerNo);
   result = result && ExportIntParameter("targetLayerMiniNo", fTargetLayerMiniNo);
   result = result && ExportIntParameter("targetLayerShortNo", fTargetLayerShortNo);
+  result = result && ExportIntParameter("targetLayerLongNo", fTargetLayerLongNo);
   result = result && ExportIntParameter("targetLayerDampeNo", fTargetLayerDampeNo);
   result = result && ExportRealParameter("targetLayerDistance", fTargetLayerDistance / cm);
   result = result && ExportRealParameter("AMStileX", fAMSTileX / cm);
