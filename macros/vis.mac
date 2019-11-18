@@ -53,22 +53,35 @@
 
 /GGS/printLogVols 1
 
-#/GGS/scoring/addGGSIntHitSD siStripLog
-#/GGS/scoring/siStripLog.GGSIntHitSD/storeParticleHits true
-
-
-/GGS/scoring/addGGSIntHitSD siTileLog
-/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
-
-
-#/GGS/scoring/addGGSIntHitSD siLayerLongLog
-#/GGS/scoring/siLayerLongLog.GGSIntHitSD/storeParticleHits true
-
+# these are the logical volumes containing the tiles (wafers). Let's use the tiles.########
 #/GGS/scoring/addGGSIntHitSD siLayerMiniLog
 #/GGS/scoring/siLayerMiniLog.GGSIntHitSD/storeParticleHits true
 
 #/GGS/scoring/addGGSIntHitSD siLayerShortLog
 #/GGS/scoring/siLayerShortLog.GGSIntHitSD/storeParticleHits true
+
+#/GGS/scoring/addGGSIntHitSD siLayerLongLog
+#/GGS/scoring/siLayerLongLog.GGSIntHitSD/storeParticleHits true
+
+#/GGS/scoring/addGGSIntHitSD siLayerDampeLog
+#/GGS/scoring/siLayerDampeLog.GGSIntHitSD/storeParticleHits true
+############################################################################################
+
+# tiles (wafers)############################################################################
+/GGS/scoring/addGGSIntHitSD siTileLog
+/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
+
+/GGS/scoring/addGGSIntHitSD siAMSTileLog
+/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
+
+/GGS/scoring/addGGSIntHitSD siDAMPETileLog
+/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
+
+############################################################################################
+
+# MD: the strip volumes for now are incomplete and not placed
+#/GGS/scoring/addGGSIntHitSD siStripLog
+#/GGS/scoring/siStripLog.GGSIntHitSD/storeParticleHits true
 
 ##### Setup the output on ROOT file #####
 /GGS/userActions/addGGSHitsAction                      # Save hits

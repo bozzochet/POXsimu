@@ -224,9 +224,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 		    false,                 //no boolean operation
 		    0,                     //copy number
 		    fCheckOverlaps);       // checking overlaps
-  
-
-  
+    
   // check if needed
   /*
     G4Box* padMother = new G4Box("pad", 0.5 * (pad_x + l), 0.5 * (pad_y + l), 0.5 * (pad_z + l));
@@ -304,7 +302,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   G4PVReplica * layerShortReplica = new G4PVReplica("shortReplica", siAMSTileLog, siLayerShortLog, kXAxis, fLayerShortTileNo, fAMSTileX, 0);
   G4PVReplica * layerLongReplica = new G4PVReplica("longReplica", siAMSTileLog, siLayerLongLog, kXAxis, fLayerLongTileNo, fAMSTileX, 0);
 
-  G4Box* siDAMPETile = new G4Box("siTile", 0.5 * fDAMPETileX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
+  G4Box* siDAMPETile = new G4Box("siDAMPETile", 0.5 * fDAMPETileX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
   G4LogicalVolume* siDAMPETileLog = new G4LogicalVolume(siDAMPETile, silicon, "siDAMPETileLog");
   G4PVReplica * layerDampeReplica = new G4PVReplica("dampeReplica", siDAMPETileLog, siLayerDampeLog, kXAxis, fLayerDampeTileNo, fDAMPETileX, 0);
 

@@ -400,8 +400,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     // int nSHits = hReader->GetNHits("siLayerShortLog"); //Number of hit siLayers for current event
     // int nHits = hReader->GetNHits("siStripLog"); //Number of hit siLayers for current event
     nHits = hReader->GetNHits("siTileLog"); //Number of hit siLayers for current event
-    // nHits += hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
-    // nHits += hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
+    nHits += hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
+    nHits += hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
     std::cout<<"EVT "<<iEv<<" NHITS "<<nHits<<std::endl;
     //nHitHisto->Fill(nHits);
     
