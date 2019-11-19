@@ -9,7 +9,7 @@
 /Detector/layersOffsetX 0. cm	  		# set X alignment of layers [2.0 cm]
 /Detector/layersOffsetY 0. cm	  		# set Y alignment of layers [3.52 cm]
 
-/Detector/targetPosZ 0. cm			# set target Z pos
+/Detector/targetPosZ 0. cm			# set target Z pos #MD: unused
 
 /Detector/targetSizeX 60. cm			# set target box X size [50] #MD: unused
 /Detector/targetSizeY 60. cm			# set target box Y size [50] #MD: unused

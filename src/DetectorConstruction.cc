@@ -177,14 +177,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   //// maybe with a tbitsarray like stuff?
   
   // G4cout<< "**** warning-> HARDCODED DETECTOR ALIGNMENT (X=0 Y=1): ";
-  // layers alignment (X=0 Y=1)
-  
+  // layers alignment (X=0 Y=1)  
   
   G4cout<< "**** STRING DETECTOR ALIGNMENT: "<<fAlign<<G4endl;
   //int * al = new int[fAlign.size()];
   //std::copy(fAlign.begin(), fAlign.end(), al); 
   
-  G4int tAlign[fTargetLayerNo];
+  //  G4int tAlign[fTargetLayerNo];
+  std::vector<G4int> tAlign(fTargetLayerNo,-1);
   for(int it=0;it<fTargetLayerNo;it++){
     tAlign[it]=fAlign[it]-'0';
     //tAlign[it]=it%2==0?0:1;
@@ -192,7 +192,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   }
   
   // spectrometer alignment (X=0 Y=1)
-  G4int sAlign[fSMLayerNo];
+  //  G4int sAlign[fSMLayerNo];
+  std::vector<G4int> sAlign(fSMLayerNo,-1);
   sAlign[0]=1;
   G4cout<<sAlign[0]<<" ";
   for(int is=1;is<fSMLayerNo;is++){
@@ -205,27 +206,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   myRotation->rotateX(0.*deg);
   myRotation->rotateY(0.*deg);
   myRotation->rotateZ(90.*deg);
+  
   G4double layerMiniX = fTileX * fLayerMiniTileNo;  // x of mini ladder 
   G4double layerShortX = fAMSTileX * fLayerShortTileNo; // x of short ladder
   G4double layerLongX = fAMSTileX * fLayerLongTileNo; // x of long ladder
   G4double layerDampeX = fDAMPETileX * fLayerDampeTileNo; // x of dampe ladder 
 
-  //TARGET
-  
-  G4double targetLayerFirstZ = fTargetLayerOffsetZ-0.5*fTargetSizeZ;
-   
-  G4Box* targetMother = new G4Box("target", 0.5 * fTargetSizeX, 0.5 * (fTargetSizeY), 0.5 * (fTargetSizeZ));
-  G4LogicalVolume* targetLog = new G4LogicalVolume(targetMother, default_mat, "target");
-
-  new G4PVPlacement(0,                     //no rotation
-		    G4ThreeVector(0.,0.,fTargetPosZ),       //at (0,0,0)
-		    targetLog,              //its logical volume
-		    "target",                 //its name
-		    logicWorld,            //its mother  volume
-		    false,                 //no boolean operation
-		    0,                     //copy number
-		    fCheckOverlaps);       // checking overlaps
-    
   // check if needed
   /*
     G4Box* padMother = new G4Box("pad", 0.5 * (pad_x + l), 0.5 * (pad_y + l), 0.5 * (pad_z + l));
@@ -240,37 +226,92 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     fCheckOverlaps);       // checking overlaps
   */
   
-  G4Box* siLayerMini = new G4Box("siLayerMini", 0.5 * layerMiniX, 0.5 * fTileY, 0.5 * fTileThickness);
-  G4Box* siLayerShort = new G4Box("siLayerShort", 0.5 * layerShortX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
-  G4Box* siLayerLong = new G4Box("siLayerLong", 0.5 * layerLongX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
-  G4Box* siLayerDampe = new G4Box("siLayerDampe", 0.5 * layerDampeX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
-  
+  //LADDERS: (essentially unused)
+  //PLACED LATER
+  G4Box* siLayerMini = new G4Box("siLayerMini", 0.5 * layerMiniX, 0.5 * fTileY, 0.5 * fTileThickness);  
   G4LogicalVolume* siLayerMiniLog = new G4LogicalVolume(siLayerMini, silicon, "siLayerMiniLog");
-  G4LogicalVolume* siLayerShortLog = new G4LogicalVolume(siLayerShort, silicon, "siLayerShortLog");
-  G4LogicalVolume* siLayerLongLog = new G4LogicalVolume(siLayerLong, silicon, "siLayerLongLog");
-  G4LogicalVolume* siLayerDampeLog = new G4LogicalVolume(siLayerDampe, silicon, "siLayerDampeLog");
   
+  G4Box* siLayerShort = new G4Box("siLayerShort", 0.5 * layerShortX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
+  G4LogicalVolume* siLayerShortLog = new G4LogicalVolume(siLayerShort, silicon, "siLayerShortLog");
+
+  G4Box* siLayerLong = new G4Box("siLayerLong", 0.5 * layerLongX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
+  G4LogicalVolume* siLayerLongLog = new G4LogicalVolume(siLayerLong, silicon, "siLayerLongLog");
+
+  G4Box* siLayerDampe = new G4Box("siLayerDampe", 0.5 * layerDampeX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
+  G4LogicalVolume* siLayerDampeLog = new G4LogicalVolume(siLayerDampe, silicon, "siLayerDampeLog");
+
+  //WAFERS:
+  //PLACED LATER
+  G4Box* siTile = new G4Box("siTile", 0.5 * fTileX, 0.5 * fTileY, 0.5 * fTileThickness);
+  G4LogicalVolume* siTileLog = new G4LogicalVolume(siTile, silicon, "siTileLog");  
+
+  G4Box* siAMSTile = new G4Box("siAMSTile", 0.5 * fAMSTileX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
+  G4LogicalVolume* siAMSTileLog = new G4LogicalVolume(siAMSTile, silicon, "siAMSTileLog");
+
+  G4Box* siDAMPETile = new G4Box("siDAMPETile", 0.5 * fDAMPETileX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
+  G4LogicalVolume* siDAMPETileLog = new G4LogicalVolume(siDAMPETile, silicon, "siDAMPETileLog");
+
+  //STRIPS:
+  //PLACED LATER
+  /*
+     G4double siStripX = fTileX;
+     G4double siStripY = fTileSPitch;
+     G4double siStripZ = fTileThickness;
+     
+     G4int nSStrips = int(fAMSTileY/fAMSTileSPitch); // = siStripY
+     G4int nKStrips = int(fAMSTileY/fAMSTileKPitch);
+     
+     G4Box* siStrip = new G4Box("siStrip", 0.5 * siStripX, 0.5 * siStripY, 0.5 * siStripZ);
+     G4LogicalVolume* siStripLog = new G4LogicalVolume(siStrip, silicon, "siStripLog");
+  */
+  
+  //TARGET
+  
+  G4double targetLayerFirstZ = fTargetLayerOffsetZ-0.5*fTargetSizeZ;
+   
+  G4Box* targetMother = new G4Box("target", 0.5 * fTargetSizeX, 0.5 * (fTargetSizeY), 0.5 * (fTargetSizeZ));
+  G4LogicalVolume* targetLog = new G4LogicalVolume(targetMother, default_mat, "target");
+
+  new G4PVPlacement(0,                                      //no rotation
+		    G4ThreeVector(0.,0.,fTargetPosZ),       //at (0,0,0)
+		    targetLog,                              //its logical volume
+		    "target",                               //its name
+		    logicWorld,                             //its mother  volume
+		    false,                                  //no boolean operation
+		    0,                                      //copy number
+		    fCheckOverlaps);                        // checking overlaps
+
+  G4double targetLayerFirstHalfThickness = 0.;
+  G4Box* _thisbox = NULL;
+  bool firstdone = false;
+    
   for (G4int iln = 0; iln <fTargetLayerNo ; iln++) {
     G4PVPlacement* pvpl = NULL;
-    //MD: il targetLayerFirstZ+fTileThickness/2 e' sbagliato dato che dipende dallo spessore del primo
-    //forse targetLayerFirstZ deve essere la posizione centrale e il primo e' posizionato a -fTileThickness/2
     if (iln<fTargetLayerMiniNo) {
+      if (!firstdone) {
+	_thisbox = (G4Box*)(siLayerMiniLog->GetSolid());
+	targetLayerFirstHalfThickness = _thisbox->GetZHalfLength();
+      }
       pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
 			       G4ThreeVector(0.,
 					     0.,
-					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+					     targetLayerFirstZ+targetLayerFirstHalfThickness+(iln)*fTargetLayerDistance),
 			       siLayerMiniLog,
 			       "siLayerMiniPhys",
 			       targetLog,
-			  false,	
+			       false,	
 			       iln,
 			       false);
     }
     else if (iln-fTargetLayerMiniNo<fTargetLayerShortNo) {
+      if (!firstdone) {
+	_thisbox = (G4Box*)(siLayerShortLog->GetSolid());
+	targetLayerFirstHalfThickness = _thisbox->GetZHalfLength();
+      }
       pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
 			       G4ThreeVector(tAlign[iln]*fLayersOffsetY,
 					     (!tAlign[iln])*fLayersOffsetX,
-					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+					     targetLayerFirstZ+targetLayerFirstHalfThickness+(iln)*fTargetLayerDistance),
 			       siLayerShortLog,
 			       "siLayerShortPhys",
 			       targetLog,
@@ -279,10 +320,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 			       false);
     }
     else if (iln-(fTargetLayerMiniNo+fTargetLayerShortNo)<fTargetLayerLongNo) {
+      if (!firstdone) {
+	_thisbox = (G4Box*)(siLayerLongLog->GetSolid());
+	targetLayerFirstHalfThickness = _thisbox->GetZHalfLength();
+      }
       pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
 			       G4ThreeVector(tAlign[iln]*fLayersOffsetY,
 					     (!tAlign[iln])*fLayersOffsetX,
-					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+					     targetLayerFirstZ+targetLayerFirstHalfThickness+(iln)*fTargetLayerDistance),
 			       siLayerLongLog,
 			       "siLayerLongPhys",
 			       targetLog,
@@ -291,10 +336,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 			       false);
     }
     else {
+      if (!firstdone) {
+	_thisbox = (G4Box*)(siLayerDampeLog->GetSolid());
+	targetLayerFirstHalfThickness = _thisbox->GetZHalfLength();
+      }
       pvpl = new G4PVPlacement(!tAlign[iln]?myRotation:0,
 			       G4ThreeVector(tAlign[iln]*fLayersOffsetY,
 					     (!tAlign[iln])*fLayersOffsetX,
-					     targetLayerFirstZ+fTileThickness/2+(iln)*fTargetLayerDistance),
+					     targetLayerFirstZ+targetLayerFirstHalfThickness+(iln)*fTargetLayerDistance),
 			       siLayerDampeLog,
 			       "siLayerDampePhys",
 			       targetLog,
@@ -302,22 +351,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 			       iln,
 			       false);
     }
-    if (pvpl) printf("layer=%d) %s\n", iln, pvpl->GetName().data());
+    //    if (pvpl) printf("layer=%d) %s\n", iln, pvpl->GetName().data());
   }
   
-
-  G4Box* siTile = new G4Box("siTile", 0.5 * fTileX, 0.5 * fTileY, 0.5 * fTileThickness);
-  G4LogicalVolume* siTileLog = new G4LogicalVolume(siTile, silicon, "siTileLog");  
-  G4PVReplica * layerMiniReplica = new G4PVReplica("miniReplica", siTileLog, siLayerMiniLog, kXAxis, fLayerMiniTileNo, fTileX, 0);
-
-  G4Box* siAMSTile = new G4Box("siAMSTile", 0.5 * fAMSTileX, 0.5 * fAMSTileY, 0.5 * fAMSTileThickness);
-  G4LogicalVolume* siAMSTileLog = new G4LogicalVolume(siAMSTile, silicon, "siAMSTileLog");
-  G4PVReplica * layerShortReplica = new G4PVReplica("shortReplica", siAMSTileLog, siLayerShortLog, kXAxis, fLayerShortTileNo, fAMSTileX, 0);
-  G4PVReplica * layerLongReplica = new G4PVReplica("longReplica", siAMSTileLog, siLayerLongLog, kXAxis, fLayerLongTileNo, fAMSTileX, 0);
-
-  G4Box* siDAMPETile = new G4Box("siDAMPETile", 0.5 * fDAMPETileX, 0.5 * fDAMPETileY, 0.5 * fDAMPETileThickness);
-  G4LogicalVolume* siDAMPETileLog = new G4LogicalVolume(siDAMPETile, silicon, "siDAMPETileLog");
-  G4PVReplica * layerDampeReplica = new G4PVReplica("dampeReplica", siDAMPETileLog, siLayerDampeLog, kXAxis, fLayerDampeTileNo, fDAMPETileX, 0);
+  //  G4PVReplica * layerMiniReplica =
+  new G4PVReplica("miniReplica", siTileLog, siLayerMiniLog, kXAxis, fLayerMiniTileNo, fTileX, 0);
+  //  G4PVReplica * layerShortReplica =
+  new G4PVReplica("shortReplica", siAMSTileLog, siLayerShortLog, kXAxis, fLayerShortTileNo, fAMSTileX, 0);
+  //  G4PVReplica * layerLongReplica =
+  new G4PVReplica("longReplica", siAMSTileLog, siLayerLongLog, kXAxis, fLayerLongTileNo, fAMSTileX, 0);
+  //  G4PVReplica * layerDampeReplica =
+  new G4PVReplica("dampeReplica", siDAMPETileLog, siLayerDampeLog, kXAxis, fLayerDampeTileNo, fDAMPETileX, 0);
 
   //SPECTROMETER
   
@@ -341,30 +385,47 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   G4double spectrometerEPosZ = fMagVolZ/2. + fLayerEGap + fAMSTileThickness/2. ;
     
   // HARDCODED LAYER NUMBER -->to change
+  
   // Front layers PhysVol 
-  
-  new G4PVPlacement(!sAlign[0]?myRotation:0,G4ThreeVector((sAlign[0])*fLayersOffsetY,(!sAlign[0])*fLayersOffsetX,spectrometerFPosZ),siLayerLongLog,"siLayerF1Phys",spectrometerLog,false,fTargetLayerNo,false);
-  
-  new G4PVPlacement(!sAlign[1]?myRotation:0,G4ThreeVector((sAlign[1])*fLayersOffsetY,(!sAlign[1])*fLayersOffsetX,spectrometerFPosZ+fLayerFDistance),siLayerLongLog,"siLayerF2Phys",spectrometerLog,false,fTargetLayerNo+1,false);
+  new G4PVPlacement(!sAlign[0]?myRotation:0,
+		    G4ThreeVector((sAlign[0])*fLayersOffsetY,(!sAlign[0])*fLayersOffsetX,spectrometerFPosZ),
+		    siLayerLongLog,
+		    "siLayerF1Phys",
+		    spectrometerLog,
+		    false,
+		    fTargetLayerNo,
+		    false);
+  new G4PVPlacement(!sAlign[1]?myRotation:0,
+		    G4ThreeVector((sAlign[1])*fLayersOffsetY,(!sAlign[1])*fLayersOffsetX,spectrometerFPosZ+fLayerFDistance),
+		    siLayerLongLog,
+		    "siLayerF2Phys",
+		    spectrometerLog,
+		    false,
+		    fTargetLayerNo+1,
+		    false);
   
   // End layers PhysVol 
- 
-  new G4PVPlacement(!sAlign[2]?myRotation:0,G4ThreeVector((sAlign[2])*fLayersOffsetY,(!sAlign[2])*fLayersOffsetX,spectrometerEPosZ),siLayerLongLog,"siLayerE1Phys",spectrometerLog,false,fTargetLayerNo+2,false);
-  
-  new G4PVPlacement(!sAlign[3]?myRotation:0,G4ThreeVector((sAlign[3])*fLayersOffsetY,(!sAlign[3])*fLayersOffsetX,spectrometerEPosZ+fLayerEDistance),siLayerLongLog,"siLayerE2Phys",spectrometerLog,false,fTargetLayerNo+3,false);
-  // 
+  new G4PVPlacement(!sAlign[2]?myRotation:0,
+		    G4ThreeVector((sAlign[2])*fLayersOffsetY,(!sAlign[2])*fLayersOffsetX,spectrometerEPosZ)
+		    ,siLayerLongLog,
+		    "siLayerE1Phys",
+		    spectrometerLog,
+		    false,
+		    fTargetLayerNo+2,
+		    false);
+  new G4PVPlacement(!sAlign[3]?myRotation:0,
+		    G4ThreeVector((sAlign[3])*fLayersOffsetY,(!sAlign[3])*fLayersOffsetX,spectrometerEPosZ+fLayerEDistance),
+		    siLayerLongLog,
+		    "siLayerE2Phys",
+		    spectrometerLog,
+		    false,
+		    fTargetLayerNo+3,
+		    false);
 
-  G4double siStripX = fTileX;
-  G4double siStripY = fTileSPitch;
-  G4double siStripZ = fTileThickness;
-  
-  G4int nSStrips = int(fAMSTileY/fAMSTileSPitch); // = siStripY
-  G4int nKStrips = int(fAMSTileY/fAMSTileKPitch);
-  
-  G4Box* siStrip = new G4Box("siStrip", 0.5 * siStripX, 0.5 * siStripY, 0.5 * siStripZ);
-  G4LogicalVolume* siStripLog = new G4LogicalVolume(siStrip, silicon, "siStripLog");
-
-  // G4PVReplica * siStripReplica = new G4PVReplica("stripReplica", siStripLog, siTileLog, kYAxis, nSStrips, siStripY, 0);
+  // STRIPS:
+  /*
+     G4PVReplica * siStripReplica = new G4PVReplica("stripReplica", siStripLog, siTileLog, kYAxis, nSStrips, siStripY, 0);
+  */
 
   // magnet vol
   
