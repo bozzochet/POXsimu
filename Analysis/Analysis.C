@@ -495,7 +495,6 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
       double ex=-9999;
       double ey=-9999;
       double ez=-9999;
-      double ee=-9999;
 
       for (int iPHit =0; iPHit<nPHits; iPHit++){
 	thisPHit  = thisHit->GetPartHit(iPHit);
@@ -529,7 +528,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	  ex=thisPHit->exitPoint[0];
 	  ey=thisPHit->exitPoint[1];
 	  ez=thisPHit->exitPoint[2];
-	  ee=thisPHit->entranceEnergy;	  
+	  eEne=thisPHit->entranceEnergy;
 	  exMom[iHit]=thisPHit->entranceMomentum[0];
 	  eyMom[iHit]=thisPHit->entranceMomentum[1];
 	  ezMom[iHit]=thisPHit->entranceMomentum[2];
@@ -573,7 +572,6 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	  eexxCoord=ex;
 	  eexyCoord=ey;
 	  eexzCoord=ez;
-	  eEne=ee;		  
 	  }	  
 	} //// positron values
 
