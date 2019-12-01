@@ -21,30 +21,30 @@
 #include "utils/GGSSmartLog.h"
 //#include "/home/claudio/Software/GGS/install/include/utils/GGSSmartLog.h"
 /*
-double
-CosAngle(const TVector3& l, const TVector3& r)
-{
+  double
+  CosAngle(const TVector3& l, const TVector3& r)
+  {
   const double magnitudeA = l.GetMag();
   const double magnitudeB = r.GetMag();
-    return (magnitudeA && magnitudeB) ?
-      (l * r) / (magnitudeA * magnitudeB) : 1;
+  return (magnitudeA && magnitudeB) ?
+  (l * r) / (magnitudeA * magnitudeB) : 1;
   }
 
 
-double
-Angle(const TVector3& left, const TVector3& right)
-{
+  double
+  Angle(const TVector3& left, const TVector3& right)
+  {
   //const double cosAngle = CosAngle(left, right);
   //  return (cosAngle >= 1) ? 0 : acos(cosAngle);
   // DV: this is more accurate for small and large angles
   const Vector a = 1/left.GetMag() * left;
-    const Vector b = 1/right.GetMag() * right;
-    const double d2 = (a - b).GetMag2();
-    if (d2 <= 2)
-      return 2 * std::asin(0.5 * std::sqrt(d2));
-    else
-      return 2 * std::acos(0.5 * (a + b).GetMag());
-}
+  const Vector b = 1/right.GetMag() * right;
+  const double d2 = (a - b).GetMag2();
+  if (d2 <= 2)
+  return 2 * std::asin(0.5 * std::sqrt(d2));
+  else
+  return 2 * std::acos(0.5 * (a + b).GetMag());
+  }
 
 */
 
@@ -119,14 +119,14 @@ void CleanEvent(int nMaxHits){
   ppHit = -1;
   eLastZ = -1.;
   pLastZ = -1.;
-
+  
   //  Double_t zPath[nMaxHits];
   gEne=-9999; 
   zPath=-9999;
-  xCoord[nMaxHits]={0.};
-  yCoord[nMaxHits]={0.};
-  zCoord[nMaxHits]={0.};
-  eDep[nMaxHits]={0.};
+  std::fill_n(xCoord, nMaxHits, 0.);
+  std::fill_n(yCoord, nMaxHits, 0.);
+  std::fill_n(zCoord, nMaxHits, 0.);
+  std::fill_n(eDep, nMaxHits, 0.);
   //Double_t xMom[nMaxHits];
   //Double_t yMom[nMaxHits];
   //Double_t zMom[nMaxHits];
@@ -282,10 +282,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 
   //     TH1F *dthVHisto = new TH1F("dthVHisto", "track space angle_{rec-true} [deg]", 2000, 0., 50.); // theo - geant4 sim
 	
-     //  TH2F *xyHisto = new TH2F("xyHisto", "YX coordinates of particle [mm]", 1000, -10, 10,1000, -10,10); // YX primary
+  //  TH2F *xyHisto = new TH2F("xyHisto", "YX coordinates of particle [mm]", 1000, -10, 10,1000, -10,10); // YX primary
   
-     // TH1F *zIntHisto = new TH1F("zIntHisto", "Z coordinate of interaction point [cm]", 1000, 0, 100); // Interaction point
-     //TH2F *xyIntHisto = new TH2F("xyIntHisto", "YX coordinates of interaction point [cm]", 1000, -10, 10,1000, -10,10); // YX Interaction point
+  // TH1F *zIntHisto = new TH1F("zIntHisto", "Z coordinate of interaction point [cm]", 1000, 0, 100); // Interaction point
+  //TH2F *xyIntHisto = new TH2F("xyIntHisto", "YX coordinates of interaction point [cm]", 1000, -10, 10,1000, -10,10); // YX Interaction point
 
 
   int nLayers = geoParams->GetIntGeoParam("targetLayerNo")+geoParams->GetIntGeoParam("smLayerNo");
@@ -380,7 +380,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   COUT(INFO) << "Begin loop over " << nEvts << " events" << ENDL;
   
   for (iEv = 0; iEv < nEvts; iEv++) {
-  //for (int iEv = 0; iEv < 33; iEv++) {
+    //for (int iEv = 0; iEv < 33; iEv++) {
 
     //    CleanEvent(nMaxHits);
     
@@ -520,12 +520,12 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	  zp=thisPHit->pathLength;
 	}  //// primary particle values
 
-  if(thisPHit->particlePdg==11||thisPHit->particlePdg==-11){  /// secondary particles (electron and positron)
+	if(thisPHit->particlePdg==11||thisPHit->particlePdg==-11){  /// secondary particles (electron and positron)
 	  xCoord[iHit]=(thisPHit->entrancePoint[0]+thisPHit->exitPoint[0])/2;
 	  yCoord[iHit]=(thisPHit->entrancePoint[1]+thisPHit->exitPoint[1])/2;
 	  zCoord[iHit]=(thisPHit->entrancePoint[2]+thisPHit->exitPoint[2])/2;
-    eDep[iHit]=1e3*thisPHit->eDep;
-  }
+	  eDep[iHit]=1e3*thisPHit->eDep;
+	}
 
 
 	if(thisPHit->parentID==1&&thisPHit->particlePdg==11){ /// electron
@@ -571,18 +571,18 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	    std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" --->>> PPROD POSITRON PHIT: "<< iPHit<<" eno "<<eno<<" pno "<<pno<< std::endl;	  
 
 	  if (!pprod){
-	  pprod=true;
-	  ppHit=iHit;
-	  pexxCoord=thisPHit->exitPoint[0];
-	  pexyCoord=thisPHit->exitPoint[1];
-	  pexzCoord=thisPHit->exitPoint[2];
-	  pEne=thisPHit->entranceEnergy;
+	    pprod=true;
+	    ppHit=iHit;
+	    pexxCoord=thisPHit->exitPoint[0];
+	    pexyCoord=thisPHit->exitPoint[1];
+	    pexzCoord=thisPHit->exitPoint[2];
+	    pEne=thisPHit->entranceEnergy;
 
-	  gEne=mom;
-	  zPath=zp;
-	  eexxCoord=ex;
-	  eexyCoord=ey;
-	  eexzCoord=ez;
+	    gEne=mom;
+	    zPath=zp;
+	    eexxCoord=ex;
+	    eexyCoord=ey;
+	    eexzCoord=ez;
 	  }	  
 	} //// positron values
 
@@ -659,8 +659,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	//	dthHisto->Fill((threc-thtrue)*180/TMath::Pi());
 	//dthVHisto->Fill((vrec.Angle(vtrue))*180/TMath::Pi());
 	//eDepHisto->Fill(1e3*totEDep);
-      //      xyHisto->Fill(x,y);
-      //      std::cout<<"EVT "<<iEv<<" EDep [MeV]: "<<1e3*totEDep<<std::endl;
+	//      xyHisto->Fill(x,y);
+	//      std::cout<<"EVT "<<iEv<<" EDep [MeV]: "<<1e3*totEDep<<std::endl;
       }
     
     //    GGSTMCTruthInfo *mcTruthInfo = mcReader-> ??; 
@@ -679,50 +679,50 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   //dyHisto->Write();
   //dbHisto->Write();
   /*  
-  TF1 * f1 = new TF1("f1","gaus",-8.5,8.5);
-  dbHisto->Fit("f1","R");
-  Double_t p0 = f1->GetParameter(0);
-  Double_t p1 = f1->GetParameter(1);
-  Double_t p2 = f1->GetParameter(2);
-  //  delete f1;
-  std::cout<<"DBHISTOPARS "<<mom<<" "<<dbHisto->GetMean()<<" "<<dbHisto->GetRMS()<<" "<<p1<<" "<<p2<<std::endl;
+      TF1 * f1 = new TF1("f1","gaus",-8.5,8.5);
+      dbHisto->Fit("f1","R");
+      Double_t p0 = f1->GetParameter(0);
+      Double_t p1 = f1->GetParameter(1);
+      Double_t p2 = f1->GetParameter(2);
+      //  delete f1;
+      std::cout<<"DBHISTOPARS "<<mom<<" "<<dbHisto->GetMean()<<" "<<dbHisto->GetRMS()<<" "<<p1<<" "<<p2<<std::endl;
 
 
 
-  TCanvas * cth=new TCanvas("cth","cth",600,400);
-  Int_t nq = 100;
-  Double_t xq[nq];  // position where to compute the quantiles in [0,1]
-  Double_t yq[nq];  // array to contain the quantiles
-  for (Int_t i=0;i<nq;i++) xq[i] = Float_t(i+1)/nq;
-  dthHisto->GetQuantiles(nq,yq,xq);
-  TLine * qline = new TLine(yq[68],0.,yq[68],dthHisto->GetBinContent(dthHisto->FindBin(yq[68])));
-  qline->SetLineColor(2);
-  qline->SetLineWidth(2);
-  qline->SetLineStyle(2);
-  dthHisto->Draw();
-  qline->Draw("same");
-  std::cout<<"DTH res "<<dthHisto->GetMean()<<" "<<dthHisto->GetRMS()<<" 68%: "<<yq[68]<<std::endl;
-  dthHisto->Write();
+      TCanvas * cth=new TCanvas("cth","cth",600,400);
+      Int_t nq = 100;
+      Double_t xq[nq];  // position where to compute the quantiles in [0,1]
+      Double_t yq[nq];  // array to contain the quantiles
+      for (Int_t i=0;i<nq;i++) xq[i] = Float_t(i+1)/nq;
+      dthHisto->GetQuantiles(nq,yq,xq);
+      TLine * qline = new TLine(yq[68],0.,yq[68],dthHisto->GetBinContent(dthHisto->FindBin(yq[68])));
+      qline->SetLineColor(2);
+      qline->SetLineWidth(2);
+      qline->SetLineStyle(2);
+      dthHisto->Draw();
+      qline->Draw("same");
+      std::cout<<"DTH res "<<dthHisto->GetMean()<<" "<<dthHisto->GetRMS()<<" 68%: "<<yq[68]<<std::endl;
+      dthHisto->Write();
 
 
-  TCanvas * cthV=new TCanvas("cthV","cthV",600,400);
-  Double_t xqV[nq];  // position where to compute the quantiles in [0,1]
-  Double_t yqV[nq];  // array to contain the quantiles
-  for (Int_t i=0;i<nq;i++) xqV[i] = Float_t(i+1)/nq;
-  dthVHisto->GetQuantiles(nq,yqV,xqV);
-  TLine * qlineV = new TLine(yqV[68],0.,yqV[68],dthVHisto->GetBinContent(dthVHisto->FindBin(yqV[68])));
-  qlineV->SetLineColor(2);
-  qlineV->SetLineWidth(2);
-  qlineV->SetLineStyle(2);
-  dthVHisto->Draw();
-  qlineV->Draw("same");
-  std::cout<<"DTHV res "<<dthVHisto->GetMean()<<" "<<dthVHisto->GetRMS()<<" 68%: "<<yqV[68]<<std::endl;
-  dthVHisto->Write();
+      TCanvas * cthV=new TCanvas("cthV","cthV",600,400);
+      Double_t xqV[nq];  // position where to compute the quantiles in [0,1]
+      Double_t yqV[nq];  // array to contain the quantiles
+      for (Int_t i=0;i<nq;i++) xqV[i] = Float_t(i+1)/nq;
+      dthVHisto->GetQuantiles(nq,yqV,xqV);
+      TLine * qlineV = new TLine(yqV[68],0.,yqV[68],dthVHisto->GetBinContent(dthVHisto->FindBin(yqV[68])));
+      qlineV->SetLineColor(2);
+      qlineV->SetLineWidth(2);
+      qlineV->SetLineStyle(2);
+      dthVHisto->Draw();
+      qlineV->Draw("same");
+      std::cout<<"DTHV res "<<dthVHisto->GetMean()<<" "<<dthVHisto->GetRMS()<<" 68%: "<<yqV[68]<<std::endl;
+      dthVHisto->Write();
 
-  eDepHisto->Write();
-  ePDepHisto->Write();
-  zIntHisto->Write();
-  xyIntHisto->Write();
+      eDepHisto->Write();
+      ePDepHisto->Write();
+      zIntHisto->Write();
+      xyIntHisto->Write();
   */
   runTree->Write();  
   hitTree->Write();  
