@@ -19,6 +19,7 @@
 
 // GGS headers
 #include "utils/GGSSmartLog.h"
+//#include "/home/claudio/Software/GGS/install/include/utils/GGSSmartLog.h"
 /*
 double
 CosAngle(const TVector3& l, const TVector3& r)
@@ -60,10 +61,11 @@ const Int_t nMaxHits = 100;
 //  Double_t zPath[nMaxHits];
 Double_t gEne=-9999; 
 Double_t zPath=-9999;
-//  Double_t xCoord[nMaxHits];
-//  Double_t yCoord[nMaxHits];
-//  Double_t zCoord[nMaxHits];
-//  Double_t xMom[nMaxHits];
+Double_t xCoord[nMaxHits]={0.};
+Double_t yCoord[nMaxHits]={0.};
+Double_t zCoord[nMaxHits]={0.};
+Double_t eDep[nMaxHits]={0.};
+//Double_t xMom[nMaxHits];
 //Double_t yMom[nMaxHits];
 //Double_t zMom[nMaxHits];
 Double_t eeDep[nMaxHits]={0.};
@@ -121,10 +123,11 @@ void CleanEvent(int nMaxHits){
   //  Double_t zPath[nMaxHits];
   gEne=-9999; 
   zPath=-9999;
-  //  Double_t xCoord[nMaxHits];
-  //  Double_t yCoord[nMaxHits];
-  //  Double_t zCoord[nMaxHits];
-  //  Double_t xMom[nMaxHits];
+  xCoord[nMaxHits]={0.};
+  yCoord[nMaxHits]={0.};
+  zCoord[nMaxHits]={0.};
+  eDep[nMaxHits]={0.};
+  //Double_t xMom[nMaxHits];
   //Double_t yMom[nMaxHits];
   //Double_t zMom[nMaxHits];
   std::fill_n(eeDep, nMaxHits, 0.);
@@ -322,9 +325,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   hitTree->Branch("eEne",&eEne,"eEne/D");
   hitTree->Branch("pEne",&pEne,"pEne/D");
   
-  //hitTree->Branch("xCoord",&xCoord,"xCoord[nHits]/D");
-  //hitTree->Branch("yCoord",&yCoord,"yCoord[nHits]/D");
-  //hitTree->Branch("zCoord",&zCoord,"zCoord[nHits]/D");  
+  hitTree->Branch("xCoord",&xCoord,"xCoord[nHits]/D");
+  hitTree->Branch("yCoord",&yCoord,"yCoord[nHits]/D");
+  hitTree->Branch("zCoord",&zCoord,"zCoord[nHits]/D");  
+  hitTree->Branch("eDep",&eDep,"eDep[nHits]/D");  
   //hitTree->Branch("xMom",&xMom,"xMom[nHits]/D");
   //hitTree->Branch("yMom",&yMom,"yMom[nHits]/D");
   //hitTree->Branch("zMom",&zMom,"zMom[nHits]/D");
@@ -515,6 +519,13 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	  //	  ePDepHisto->Fill(1e3*thisPHit->eDep);
 	  zp=thisPHit->pathLength;
 	}  //// primary particle values
+
+  if(thisPHit->particlePdg==11||thisPHit->particlePdg==-11){  /// secondary particles (electron and positron)
+	  xCoord[iHit]=(thisPHit->entrancePoint[0]+thisPHit->exitPoint[0])/2;
+	  yCoord[iHit]=(thisPHit->entrancePoint[1]+thisPHit->exitPoint[1])/2;
+	  zCoord[iHit]=(thisPHit->entrancePoint[2]+thisPHit->exitPoint[2])/2;
+    eDep[iHit]=1e3*thisPHit->eDep;
+  }
 
 
 	if(thisPHit->parentID==1&&thisPHit->particlePdg==11){ /// electron
