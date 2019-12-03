@@ -72,7 +72,7 @@ void TrackFinding( vector<vector<double>> hcoord,vector<vector<double>> &dir,int
     for (int i=0;i<nHits;i++){
         double xexp=best_dir[1]+tan(best_dir[0])*hcoord[i][0];
         double chi=pow(hcoord[i][1]-xexp,2);
-        if(chi>2*abs(xexp)){
+        if(chi>1*abs(xexp)){
             newcoord.push_back(hcoord[i]);
         }
         else {sum=sum+chi;conta++;}
