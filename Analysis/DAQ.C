@@ -31,11 +31,12 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   TCanvas* c2 = new TCanvas(Form("%s_%d", name.c_str(), iter), Form("%s %d", name.c_str(), iter));
   
   //this 2D histogram will contain the Hough transform
-  //  int binth=150; double minth=-TMath::Pi(), maxth=TMath::Pi();  //binning of theta
-  int binth=100; double minth=-2, maxth=2;  //binning of theta
-  int binr=100; double minr=-3, maxr=3;     //binning of r
+  double resoth=10.0*1.0e-3; double minth=-TMath::Pi()/2.0, maxth=TMath::Pi()/2.0; int binth = std::ceil((maxth-minth)/resoth);
+  //  int binth=100; double minth=-2, maxth=2;
+  double resor=10.0E-2; double minr=-3, maxr=3; int binr = std::ceil((maxr-minr)/resor);
   //double scartoth=0;//double(maxth-minth)/double(2*binth);
   //double scartor=0;//double(maxr-minr)/double(2*binr);
+  printf("%d %d\n", binth, binr);
   TH2D* h = new TH2D(Form("h_%s_%d", name.c_str(), iter), "hough", binth, minth, maxth, binr, minr, maxr);
 
   //Generate the Hough transform
@@ -45,12 +46,14 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
     th; //l'angolo tra r e l'asse z
   for (int i=0;i<nHits;i++){
     for (int j=i+1;j<nHits;j++){
-      if(hcoord[i][0]!=hcoord[j][0]){
+      //      if(hcoord[i][0]!=hcoord[j][0]){
+      if(fabs(hcoord[i][0]-hcoord[j][0])>1.0e-1){
 	m=(hcoord[i][1]-hcoord[j][1])/(hcoord[i][0]-hcoord[j][0]);
-	th=atan(m);
-	//	th=atan2((hcoord[i][1]-hcoord[j][1]), (hcoord[i][0]-hcoord[j][0]));
+	double atanm=atan(m);
+	double atan2m=atan2((hcoord[i][1]-hcoord[j][1]), (hcoord[i][0]-hcoord[j][0]));
+	th=atanm;
 	r=cos(th)*hcoord[i][1]-sin(th)*hcoord[i][0];
-	//	printf("%f %f\n", th, r);
+	//	printf("atan=%f atan2=%f, m=%f r=%f\n", atanm, atan2m, m, r);
 	h->Fill(th,r);
       }
     }
@@ -169,7 +172,7 @@ void PlotHits(vector<vector<Double_t>> hcoord,vector<vector<Double_t>> dir,strin
     f[i]->Draw("SAME");
   TString filename = Form("%s_%d_%d%s", name.c_str(), ev, evID, ".png");
   c->SaveAs(filename);
-
+  
   if (!kDraw) delete c;
 }
 
