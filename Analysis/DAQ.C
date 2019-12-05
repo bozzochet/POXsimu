@@ -26,10 +26,11 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   if (iter>n_search) return;
   int nHits=hcoord.size();
 
-  TCanvas* c2 = new TCanvas(Form("%s_%d", name.c_str(), iter), "Hough Transform");
+  TCanvas* c2 = new TCanvas(Form("%s_%d", name.c_str(), iter), Form("%s %d", name.c_str(), iter));
   
   //this 2D histogram will contain the Hough transform
-  int binth=150; double minth=-TMath::Pi(),maxth=TMath::Pi();  //binning of theta
+  //  int binth=150; double minth=-TMath::Pi(), maxth=TMath::Pi();  //binning of theta
+  int binth=100; double minth=-2, maxth=2;  //binning of theta
   int binr=100; double minr=-3, maxr=3;     //binning of r
   //double scartoth=0;//double(maxth-minth)/double(2*binth);
   //double scartor=0;//double(maxr-minr)/double(2*binr);
@@ -64,8 +65,8 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
     //Plot the transform
     h->SetXTitle("angolo");
     h->SetYTitle("distanza");
-    h->Draw("lego2");
-    //    h->DrawCopy("colz");
+    //    h->Draw("lego2");
+    h->Draw("colz");
     TString filename=Form("%s_%d%s", name.c_str(), iter, ".png");
     c2->SaveAs(filename);
   }
@@ -79,6 +80,10 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
     iter--;
     return;
   }
+  // if (kDraw) {
+  //   TPolyMarker* pm = new TPolyMarker(s->GetNPeaks(), thpeaks, rpeaks);
+  //   pm->Draw("same");
+  // }
 
   //Add the best track (x0,theta) to the OUTPUT vector
   vector<double> best_dir(2);
