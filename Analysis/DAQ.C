@@ -14,8 +14,13 @@ Double_t eDep[nHitsMax]={0.};
 
 void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, string name, bool kDraw=true){
 
+  int divisions= gStyle->GetNumberContours();
+  gStyle->SetNumberContours(8);
+  
   static int iter=0;
   iter++;
+
+  printf("%s, iter=%d\n", name.c_str(), iter);
   
   int n_search=2;               //number of track to search
   if (iter>n_search) return;
@@ -24,38 +29,53 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   TCanvas* c2 = new TCanvas(Form("%s_%d", name.c_str(), iter), "Hough Transform");
   
   //this 2D histogram will contain the Hough transform
-  int binth=500; double minth=-TMath::Pi(),maxth=TMath::Pi();  //binning of theta
-  int binr=500; double minr=-3, maxr=3;     //binning of r
+  int binth=150; double minth=-TMath::Pi(),maxth=TMath::Pi();  //binning of theta
+  int binr=100; double minr=-3, maxr=3;     //binning of r
   //double scartoth=0;//double(maxth-minth)/double(2*binth);
   //double scartor=0;//double(maxr-minr)/double(2*binr);
   TH2D* h = new TH2D(Form("h_%s_%d", name.c_str(), iter), "hough", binth, minth, maxth, binr, minr, maxr);
 
   //Generate the Hough transform
-  double 
+  double
+    m,  //la pendenza 
     r,  //la distanza tra retta e origine
     th; //l'angolo tra r e l'asse z
   for (int i=0;i<nHits;i++){
     for (int j=i+1;j<nHits;j++){
       if(hcoord[i][0]!=hcoord[j][0]){
-	//	sono un coglione: era meglio m che gia' è univocamente definita in segno
-	th=atan2((hcoord[i][1]-hcoord[j][1]), (hcoord[i][0]-hcoord[j][0]));
+	m=(hcoord[i][1]-hcoord[j][1])/(hcoord[i][0]-hcoord[j][0]);
+	th=atan(m);
+	//	th=atan2((hcoord[i][1]-hcoord[j][1]), (hcoord[i][0]-hcoord[j][0]));
 	r=cos(th)*hcoord[i][1]-sin(th)*hcoord[i][0];
-	printf("%f %f\n", th, r);
+	//	printf("%f %f\n", th, r);
 	h->Fill(th,r);
       }
     }
   }
 
   //Search for peaks in the Hough transform
-  TSpectrum2 *s=new TSpectrum2();
-  int n_found=s->Search(h,1,"nobackground",.5);
+  TSpectrum2* s=new TSpectrum2();
+  int n_found=s->Search(h, 1, "nobackground", .5);
   //  s->Print();
-  double *thpeaks=s->GetPositionX();
-  double *rpeaks=s->GetPositionY();
-  // cout<<s->GetNPeaks()<<endl;
+  double* thpeaks=s->GetPositionX();
+  double* rpeaks=s->GetPositionY();
+
+  if (kDraw) {
+    //Plot the transform
+    h->SetXTitle("angolo");
+    h->SetYTitle("distanza");
+    h->Draw("lego2");
+    //    h->DrawCopy("colz");
+    TString filename=Form("%s_%d%s", name.c_str(), iter, ".png");
+    c2->SaveAs(filename);
+  }
+  if (c2 && !kDraw) delete c2;
+  if (h && !kDraw) delete h;
+
+  gStyle->SetNumberContours(divisions);
+  
+  cout<<s->GetNPeaks()<<endl;
   if(s->GetNPeaks()==0) {
-    if (c2 && !kDraw) delete c2;
-    if (h) delete h;
     iter--;
     return;
   }
@@ -65,19 +85,7 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   best_dir[0]=thpeaks[0]; //angle
   best_dir[1]= rpeaks[0] / cos(best_dir[0]);  //q
   dir.push_back(best_dir);
-
-  if (kDraw) {
-    //Plot the transform
-    h->SetXTitle("angolo");
-    h->SetYTitle("distanza");
-    //    h->DrawCopy("lego2");
-    h->DrawCopy("colz");
-    TString filename=Form("%s_%d%s", name.c_str(), iter, ".png");
-    c2->SaveAs(filename);
-  }
-  if (c2 && !kDraw) delete c2;
-  if (h) delete h;
-
+  
   //remove fitted points
   vector<vector<double>> newcoord;
   int z0=10000;int i0=0;double sum=0;double conta=0;
@@ -87,7 +95,9 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
     if(chi>1*abs(xexp)){
       newcoord.push_back(hcoord[i]);
     }
-    else {sum=sum+chi;conta++;}
+    else {
+      sum=sum+chi;conta++;
+    }
     if(hcoord[i][0]<z0){
       z0=hcoord[i][1];
       i0=i;
@@ -118,7 +128,7 @@ void PlotHits(vector<vector<Double_t>> hcoord,vector<vector<Double_t>> dir,strin
   }
 
   int n_found=dir.size();
-  printf("%s) n dir found %d\n", name.c_str(), n_found);
+  //  printf("%s) n dir found %d\n", name.c_str(), n_found);
   TF1* f[n_found];
   for(int i=0;i<n_found;i++){
     f[i]=new TF1("f1","[0]*x+[1]",-30,30);
