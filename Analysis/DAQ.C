@@ -14,6 +14,8 @@ Double_t eDep[nHitsMax]={0.};
 
 void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, string name, bool kDraw=true){
 
+  const bool kTSpec = false; 
+
   int divisions= gStyle->GetNumberContours();
   gStyle->SetNumberContours(8);
   
@@ -55,11 +57,27 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   }
 
   //Search for peaks in the Hough transform
-  TSpectrum2* s=new TSpectrum2();
-  int n_found=s->Search(h, 1, "nobackground", .5);
-  //  s->Print();
-  double* thpeaks=s->GetPositionX();
-  double* rpeaks=s->GetPositionY();
+  TSpectrum2 s;
+  double* thpeaks = NULL;
+  double* rpeaks = NULL;
+  int npeaks = 0;
+  if (kTSpec) {
+    int n_found=s.Search(h, 1, "nobackground", .5);
+    //  s.Print();
+    npeaks = s.GetNPeaks();
+    thpeaks=s.GetPositionX();
+    rpeaks=s.GetPositionY();
+  }
+  else {
+    npeaks=1;
+    int mb = h->GetMaximumBin();
+    int binx, biny, binz;
+    h->GetBinXYZ(mb, binx, biny, binz);
+    thpeaks = new double[1];
+    rpeaks = new double[1];
+    thpeaks[0] = h->GetXaxis()->GetBinCenter(binx);
+    rpeaks[0] = h->GetYaxis()->GetBinCenter(biny);
+  }
 
   if (kDraw) {
     //Plot the transform
@@ -74,16 +92,16 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   if (h && !kDraw) delete h;
 
   gStyle->SetNumberContours(divisions);
-  
-  cout<<s->GetNPeaks()<<endl;
-  if(s->GetNPeaks()==0) {
+
+  cout<<npeaks<<endl;
+  if(npeaks==0) {
     iter--;
     return;
   }
-  // if (kDraw) {
-  //   TPolyMarker* pm = new TPolyMarker(s->GetNPeaks(), thpeaks, rpeaks);
-  //   pm->Draw("same");
-  // }
+  if (kDraw) {
+    TPolyMarker* pm = new TPolyMarker(npeaks, thpeaks, rpeaks);
+    pm->Draw("same");
+  }
 
   //Add the best track (x0,theta) to the OUTPUT vector
   vector<double> best_dir(2);
