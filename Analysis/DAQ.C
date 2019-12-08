@@ -82,8 +82,6 @@ void Refine(vector<vector<double>> &hits, vector<double> &bdir, vector<vector<do
 
 void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, string name, bool vert, bool kDraw=true,int iter=1){
 
-  const bool kTSpec = false; 
-
   int divisions= gStyle->GetNumberContours();
   gStyle->SetNumberContours(8);
   
@@ -99,49 +97,24 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   }
   int nHits=hcoord.size();
 
-<<<<<<< HEAD
   TCanvas* c2 = new TCanvas(Form("%s_%d", name.c_str(), iter), "Hough Transform");
   //this 2D histogram will contain the Hough transform
-=======
-  TCanvas* c2 = new TCanvas(Form("%s_%d", name.c_str(), iter), Form("%s %d", name.c_str(), iter));
-  
-  //this 2D histogram will contain the Hough transform
-  double resoth=10.0*1.0e-3; double minth=-TMath::Pi()/2.0, maxth=TMath::Pi()/2.0; int binth = std::ceil((maxth-minth)/resoth);
-  //  int binth=100; double minth=-2, maxth=2;
-  double resor=10.0E-2; double minr=-3, maxr=3; int binr = std::ceil((maxr-minr)/resor);
-  //double scartoth=0;//double(maxth-minth)/double(2*binth);
-  //double scartor=0;//double(maxr-minr)/double(2*binr);
-  printf("%d %d\n", binth, binr);
->>>>>>> 8e5cc19956c3c4da34ae23b22b445e8bc3a18b29
   TH2D* h = new TH2D(Form("h_%s_%d", name.c_str(), iter), "hough", binth, minth, maxth, binr, minr, maxr);
 
   //Generate the Hough transform
   double m, r, th; //pendenza, distanza dall'origine e angolo tra retta e asse z
   for (int i=0;i<nHits;i++){
     for (int j=i+1;j<nHits;j++){
-<<<<<<< HEAD
       if(hcoord[i][0]!=hcoord[j][0]){
       	m=(hcoord[i][1]-hcoord[j][1])/(hcoord[i][0]-hcoord[j][0]);
 	      th=atan(m);
 	      r=cos(th)*hcoord[i][1]-sin(th)*hcoord[i][0];
 	  //	printf("%f %f\n", th, r);
 	      h->Fill(th,r);
-=======
-      //      if(hcoord[i][0]!=hcoord[j][0]){
-      if(fabs(hcoord[i][0]-hcoord[j][0])>1.0e-1){
-	m=(hcoord[i][1]-hcoord[j][1])/(hcoord[i][0]-hcoord[j][0]);
-	double atanm=atan(m);
-	double atan2m=atan2((hcoord[i][1]-hcoord[j][1]), (hcoord[i][0]-hcoord[j][0]));
-	th=atanm;
-	r=cos(th)*hcoord[i][1]-sin(th)*hcoord[i][0];
-	//	printf("atan=%f atan2=%f, m=%f r=%f\n", atanm, atan2m, m, r);
-	h->Fill(th,r);
->>>>>>> 8e5cc19956c3c4da34ae23b22b445e8bc3a18b29
       }
     }
   }
 
-<<<<<<< HEAD
   //Get the position of the maximum
   int max_bin=h->GetMaximumBin();
   int xmax,ymax,zmax;
@@ -151,42 +124,13 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   vector<double> best_dir(2);
   best_dir[0]=h->GetXaxis()->GetBinCenter(xmax); //angle
   best_dir[1]=h->GetYaxis()->GetBinCenter(ymax);  //distance
-=======
-  //Search for peaks in the Hough transform
-  TSpectrum2 s;
-  double* thpeaks = NULL;
-  double* rpeaks = NULL;
-  int npeaks = 0;
-  if (kTSpec) {
-    int n_found=s.Search(h, 1, "nobackground", .5);
-    //  s.Print();
-    npeaks = s.GetNPeaks();
-    thpeaks=s.GetPositionX();
-    rpeaks=s.GetPositionY();
-  }
-  else {
-    npeaks=1;
-    int mb = h->GetMaximumBin();
-    int binx, biny, binz;
-    h->GetBinXYZ(mb, binx, biny, binz);
-    thpeaks = new double[1];
-    rpeaks = new double[1];
-    thpeaks[0] = h->GetXaxis()->GetBinCenter(binx);
-    rpeaks[0] = h->GetYaxis()->GetBinCenter(biny);
-  }
->>>>>>> 8e5cc19956c3c4da34ae23b22b445e8bc3a18b29
 
   if (kDraw) {
     //Plot the transform
     h->SetXTitle("angolo");
     h->SetYTitle("distanza");
-<<<<<<< HEAD
     h->Draw("colz");
     //    h->DrawCopy("colz");
-=======
-    //    h->Draw("lego2");
-    h->Draw("colz");
->>>>>>> 8e5cc19956c3c4da34ae23b22b445e8bc3a18b29
     TString filename=Form("%s_%d%s", name.c_str(), iter, ".png");
     c2->SaveAs(filename);
   }
@@ -194,19 +138,6 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   if (h && !kDraw) delete h;
 
   gStyle->SetNumberContours(divisions);
-<<<<<<< HEAD
-=======
-
-  cout<<npeaks<<endl;
-  if(npeaks==0) {
-    iter--;
-    return;
-  }
-  if (kDraw) {
-    TPolyMarker* pm = new TPolyMarker(npeaks, thpeaks, rpeaks);
-    pm->Draw("same");
-  }
->>>>>>> 8e5cc19956c3c4da34ae23b22b445e8bc3a18b29
 
   vector<vector<double>> newcoord;  //this vector will contain the hits that do not fit the best dir
   Refine(hcoord,best_dir,newcoord);
@@ -260,7 +191,7 @@ void PlotHits(vector<vector<Double_t>> hcoord,vector<vector<Double_t>> dir,vecto
   for(int i=0;i<n_foundf;i++) ff[i]->Draw("SAME");
   TString filename = Form("%s_%d_%d%s", name.c_str(), ev, evID, ".png");
   c->SaveAs(filename);
-  
+
   if (!kDraw) delete c;
 }
 
