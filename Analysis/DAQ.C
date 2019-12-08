@@ -1,5 +1,11 @@
 using namespace std;
 
+struct Hit2D {
+  double Z;
+  double XorY;
+};
+typedef vector<Hit2D> Hit2DColl;
+
 int evID=-9999;
 
 const int nHitsMax=50;
@@ -16,13 +22,13 @@ int binr=100; double minr=-3, maxr=3;     //binning of r
 
 ///////////////////////////////////////////////////////////////////
 
-void Refine(vector<vector<double>> &hits, vector<double> &bdir, vector<vector<double>> &renegade, int iter=0){
+void Refine(Hit2DColl &hits, Hit2D &bdir, Hit2DColl &renegade, int iter=0){
   
   //the function recorsively calls itself studing the hits at different z values each time
   if(iter>45) return;   //exit condition for the loop 
   double pos=15-iter;   //current z position for the study
   //this vector collects the hits we keep for the next iteration
-  vector<vector<double>> newhits;
+  Hit2DColl newhits;
   //variables for the search of the minimum distance
   double min=9999;
   int jmin=-1;
@@ -31,16 +37,19 @@ void Refine(vector<vector<double>> &hits, vector<double> &bdir, vector<vector<do
   int s=hits.size();
   for(int j=0;j<s;j++){
    // cout<<j<<"/"<<s<<endl;
-    if (hits[j][0]<pos && hits[j][0]>pos-1){    //layer belonging condition
-      double xexp = bdir[1]/cos(bdir[0]) + tan(bdir[0])*hits[j][0];
-      double d=TMath::Abs(hits[j][1]-xexp);
+    if (hits[j].Z<pos && hits[j].Z>pos-1){    //layer belonging condition
+      double xexp = bdir.Z/cos(bdir.Z) + tan(bdir.Z)*hits[j].Z;
+      double d=TMath::Abs(hits[j].XorY-xexp);
 
       if(d<min){      //between the coplanar hits we look for the nearest to the expected point
-        if(jmin>-1) {renegade.push_back(hits[jmin]);}   //we collect as renegade all the hits at non-minimum distance
+        if(jmin>-1) { //we collect as renegade all the hits at non-minimum distance
+	  renegade.push_back(hits[jmin]);
+	}   
         min=d;
         jmin=j;
-      } else {
-        renegade.push_back(hits[j]);   //we collect as renegade all the hits at non-minimum distance
+      }
+      else {   //we collect as renegade all the hits at non-minimum distance
+        renegade.push_back(hits[j]);
       }
     }
     else {
@@ -55,15 +64,15 @@ void Refine(vector<vector<double>> &hits, vector<double> &bdir, vector<vector<do
     newhits.push_back(hits[jmin]);     //the nearest is the only coplanar we keep
     
     //compute a new best dir as the average theta and r of the newhits
-    int nnew=newhits.size();int conta=0;
+    int nnew=newhits.size(); int conta=0;
     double sumr=0,sumth=0;
     double m,th,r;
     for(int i=0;i<nnew;i++){
       for (int j=i+1;j<nnew;j++){
-        if(newhits[i][0]!=newhits[j][0]){
-	  m=(newhits[i][1]-newhits[j][1])/(newhits[i][0]-newhits[j][0]);
+        if(newhits[i].Z!=newhits[j].Z){
+	  m=(newhits[i].XorY-newhits[j].XorY)/(newhits[i].Z-newhits[j].Z);
 	  th=atan(m);
-	  r=cos(th)*newhits[i][1]-sin(th)*newhits[i][0];
+	  r=cos(th)*newhits[i].XorY-sin(th)*newhits[i].Z;
 	  
           sumr+=r;
           sumth+=th;
@@ -71,8 +80,8 @@ void Refine(vector<vector<double>> &hits, vector<double> &bdir, vector<vector<do
         }
       }
     }
-    bdir[0]=sumth/conta;
-    bdir[1]=(sumr/conta);
+    bdir.Z=sumth/conta;
+    bdir.XorY=(sumr/conta);
     
     Refine(newhits,bdir,renegade,iter+1);
   }
@@ -82,7 +91,7 @@ void Refine(vector<vector<double>> &hits, vector<double> &bdir, vector<vector<do
 
 ///////////////////////////////////////////////////////////////////
 
-void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, string directory, string name, bool vert, bool kDraw=true){
+void TrackFinding(Hit2DColl hcoord, Hit2DColl &dir, string directory, string name, bool vert, bool kDraw=true){
   
   int divisions= gStyle->GetNumberContours();
   gStyle->SetNumberContours(8);
@@ -110,13 +119,13 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
     th; //angolo tra retta e asse z
   for (int i=0;i<_nHits;i++){
     for (int j=i+1;j<_nHits;j++){
-      //      if(hcoord[i][0]!=hcoord[j][0]){
-      if(fabs(hcoord[i][0]-hcoord[j][0])>1.0e-1){
-	m=(hcoord[i][1]-hcoord[j][1])/(hcoord[i][0]-hcoord[j][0]);
+      //      if(hcoord[i].Z!=hcoord[j].Z){
+      if(fabs(hcoord[i].Z-hcoord[j].Z)>1.0e-1){
+	m=(hcoord[i].XorY-hcoord[j].XorY)/(hcoord[i].Z-hcoord[j].Z);
 	double atanm=atan(m);
-	double atan2m=atan2((hcoord[i][1]-hcoord[j][1]), (hcoord[i][0]-hcoord[j][0]));
+	double atan2m=atan2((hcoord[i].XorY-hcoord[j].XorY), (hcoord[i].Z-hcoord[j].Z));
 	th=atanm;
-	r=cos(th)*hcoord[i][1]-sin(th)*hcoord[i][0];
+	r=cos(th)*hcoord[i].XorY-sin(th)*hcoord[i].Z;
 	//	printf("atan=%f atan2=%f, m=%f r=%f\n", atanm, atan2m, m, r);
 	h->Fill(th,r);
       }
@@ -129,9 +138,9 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   h->GetBinXYZ(max_bin,xmax,ymax,zmax);
 
   //Add the best track (x0,theta) to the OUTPUT vector
-  vector<double> best_dir(2);
-  best_dir[0]=h->GetXaxis()->GetBinCenter(xmax); //angle
-  best_dir[1]=h->GetYaxis()->GetBinCenter(ymax);  //distance
+  Hit2D best_dir;
+  best_dir.Z=h->GetXaxis()->GetBinCenter(xmax); //angle
+  best_dir.XorY=h->GetYaxis()->GetBinCenter(ymax);  //distance
 
   if (kDraw) {
     //Plot the transform
@@ -144,7 +153,7 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   
   gStyle->SetNumberContours(divisions);
   
-  vector<vector<double>> newcoord;  //this vector will contain the hits that do not fit the best dir
+  Hit2DColl newcoord;  //this vector will contain the hits that do not fit the best dir
   Refine(hcoord,best_dir,newcoord);
   dir.push_back(best_dir);
   if(vert) newcoord.push_back(hcoord[0]);
@@ -157,7 +166,7 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
 
 //////////////////////////////////////////////////////////////
 
-void PlotHits(vector<vector<Double_t>> hcoord, vector<vector<Double_t>> dir, vector<vector<Double_t>> dirf, string directory, string name, int ev, int _evID, bool kDraw=true){
+void PlotHits(Hit2DColl hcoord, Hit2DColl dir, Hit2DColl dirf, string directory, string name, int ev, int _evID, bool kDraw=true){
   
   int n=hcoord.size();
 
@@ -167,8 +176,8 @@ void PlotHits(vector<vector<Double_t>> hcoord, vector<vector<Double_t>> dir, vec
   x = new double[n];
   z = new double[n];
   for(int i=0;i<n;i++){
-    z[i]=hcoord[i][0];
-    x[i]=hcoord[i][1];
+    z[i]=hcoord[i].Z;
+    x[i]=hcoord[i].XorY;
   }
 
   int n_found=dir.size();
@@ -176,8 +185,9 @@ void PlotHits(vector<vector<Double_t>> hcoord, vector<vector<Double_t>> dir, vec
   TF1* f[n_found];
   for(int i=0;i<n_found;i++){
     f[i] = new TF1("f1", "[0]*x+[1]", -30, 30);
-    f[i]->SetParameter(0,tan(dir[i][0]));
-    f[i]->SetParameter(1,dir[i][1]/cos(dir[i][0]));
+    f[i]->SetParameter(0,tan(dir[i].Z));
+    f[i]->SetParameter(1,dir[i].XorY/cos(dir[i].Z));
+    f[i]->SetLineColor(kBlue+2);
   }
   
   int n_foundf=dirf.size();
@@ -185,9 +195,9 @@ void PlotHits(vector<vector<Double_t>> hcoord, vector<vector<Double_t>> dir, vec
   TF1* ff[n_foundf];
   for(int i=0;i<n_foundf;i++){
     ff[i] = new TF1("f1", "[0]*x+[1]", -30, 30);
-    ff[i]->SetParameter(0,tan(dirf[i][0]));
-    ff[i]->SetParameter(1,dirf[i][1]/cos(dirf[i][0]));
-    ff[i]->SetLineColor(3);
+    ff[i]->SetParameter(0,tan(dirf[i].Z));
+    ff[i]->SetParameter(1,dirf[i].XorY/cos(dirf[i].Z));
+    ff[i]->SetLineColor(kGreen+2);
   }
 
   TGraph* g = new TGraph(n,z,x);
@@ -215,7 +225,7 @@ void PlotHits(vector<vector<Double_t>> hcoord, vector<vector<Double_t>> dir, vec
 
 ///////////////////////////////////////////////////////////////////////
 
-void ordina(vector<vector<double>> &zx){
+void ordina(Hit2DColl &zx){
   
   int n=zx.size();
   
@@ -223,17 +233,17 @@ void ordina(vector<vector<double>> &zx){
   bool ordinato=0;
   
   while(!ordinato){
-    ordinato=1;
+    ordinato=1;//come cazzo fara' a funzionare...
     for(int i=0;i<n-1;i++){
-      if(zx[i][0]>zx[i+1][0]){
+      if(zx[i].Z>zx[i+1].Z){
         ordinato=0;
-        box=zx[i][0];
-        zx[i][0]=zx[i+1][0];
-        zx[i+1][0]=box;
+        box=zx[i].Z;
+        zx[i].Z=zx[i+1].Z;
+        zx[i+1].Z=box;
 	
-        box=zx[i][1];
-        zx[i][1]=zx[i+1][1];
-        zx[i+1][1]=box;
+        box=zx[i].XorY;
+        zx[i].XorY=zx[i+1].XorY;
+        zx[i+1].XorY=box;
       }
     }
   }
@@ -273,12 +283,12 @@ void DAQ(int reqEv=-9999) {
   cout<<"Si sono verificate "<<nEvs<<" conversioni"<<endl;
 
   //This vectors of vectors will contain the hits' x and y coordinates
-  vector<vector<Double_t>> zx, zy;
-  vector<vector<Double_t>> traccex, traccey;
+  Hit2DColl zx, zy;
+  Hit2DColl traccex, traccey;
 
   //This vector will contain just the first three hits from the conversion
-  vector<vector<Double_t>> zxf, zyf;
-  vector<vector<Double_t>> traccexf, tracceyf;
+  Hit2DColl zxf, zyf;
+  Hit2DColl traccexf, tracceyf;
 
   bool last=false;
 
@@ -311,14 +321,14 @@ void DAQ(int reqEv=-9999) {
     //this loop fill the vectors of vectors from the tree branches
     for (int i=0;i<nTotalHits;i++){
       if(eDep[i]>.01 && zCoord[i]<30){    //we're taking into consideration only the detectable hits in the tracker
-      	vector<Double_t> hitx(2);
-      	hitx[0]=zCoord[i];
-	hitx[1]=xCoord[i];
+      	Hit2D hitx;
+      	hitx.Z=zCoord[i];
+	hitx.XorY=xCoord[i];
 	zx.push_back(hitx);
 	
-	vector<Double_t> hity(2);
-	hity[0]=zCoord[i];
-	hity[1]=yCoord[i];
+	Hit2D hity;
+	hity.Z=zCoord[i];
+	hity.XorY=yCoord[i];
 	zy.push_back(hity);
       }
     }
@@ -330,19 +340,20 @@ void DAQ(int reqEv=-9999) {
     ordina(zy);
 
     int opt_n=3;
-    bool vertice=zx[0][0]!=zx[1][0];
-    if(!vertice) opt_n=6;
-
+    bool vertice=zx[0].Z!=zx[1].Z;
+    if (!vertice) opt_n=6;
+    //    printf("%d\n", opt_n);
+    
     for(int i=0;i<opt_n;i++){
-	    zxf.push_back(zx[i]);
-	    zyf.push_back(zy[i]);
+      zxf.push_back(zx[i]);
+      zyf.push_back(zy[i]);
     }
 
     TrackFinding(zx, traccex, "Immagini", "houghZX", vertice, last);
     TrackFinding(zy, traccey, "Immagini", "houghZY", vertice, last);
     
-    TrackFinding(zxf,traccexf, "Immagini", "houghZXf", vertice, last);
-    TrackFinding(zyf,tracceyf, "Immagini", "houghZYf", vertice, last);
+    TrackFinding(zxf, traccexf, "Immagini", "houghZXf", vertice, last);
+    TrackFinding(zyf, tracceyf, "Immagini", "houghZYf", vertice, last);
     
     PlotHits(zx,traccex, traccexf, "Immagini", "simuZX", Ev, evID, last);
     PlotHits(zy,traccey, tracceyf, "Immagini", "simuZY", Ev, evID, last);
