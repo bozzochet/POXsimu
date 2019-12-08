@@ -12,7 +12,7 @@ Double_t eDep[nHitsMax]={0.};
 
 ///////////////////////////////////////////////////////////////////
 
-void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, string name, bool kDraw=true){
+void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, string directory, string name, bool kDraw=true){
 
   const bool kTSpec = false; 
 
@@ -26,7 +26,7 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   
   int n_search=2;               //number of track to search
   if (iter>n_search) return;
-  int nHits=hcoord.size();
+  int _nHits=hcoord.size();
 
   TCanvas* c2 = new TCanvas(Form("%s_%d", name.c_str(), iter), Form("%s %d", name.c_str(), iter));
   
@@ -44,8 +44,8 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
     m,  //la pendenza 
     r,  //la distanza tra retta e origine
     th; //l'angolo tra r e l'asse z
-  for (int i=0;i<nHits;i++){
-    for (int j=i+1;j<nHits;j++){
+  for (int i=0;i<_nHits;i++){
+    for (int j=i+1;j<_nHits;j++){
       //      if(hcoord[i][0]!=hcoord[j][0]){
       if(fabs(hcoord[i][0]-hcoord[j][0])>1.0e-1){
 	m=(hcoord[i][1]-hcoord[j][1])/(hcoord[i][0]-hcoord[j][0]);
@@ -88,7 +88,7 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
     h->SetYTitle("distanza");
     //    h->Draw("lego2");
     h->Draw("colz");
-    TString filename=Form("%s_%d%s", name.c_str(), iter, ".png");
+    TString filename=Form("%s/%s_%d%s", directory.c_str(), name.c_str(), iter, ".png");
     c2->SaveAs(filename);
   }
   if (c2 && !kDraw) delete c2;
@@ -115,7 +115,7 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   //remove fitted points
   vector<vector<double>> newcoord;
   int z0=10000;int i0=0;double sum=0;double conta=0;
-  for (int i=0;i<nHits;i++){
+  for (int i=0;i<_nHits;i++){
     double xexp=best_dir[1]+tan(best_dir[0])*hcoord[i][0];
     double chi=pow(hcoord[i][1]-xexp,2);
     if(chi>1*abs(xexp)){
@@ -134,7 +134,7 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
   //Add chi squared to the output vector
   //chisq.push_back(sum/conta);
   
-  TrackFinding(newcoord,dir,name, kDraw);
+  TrackFinding(newcoord, dir, directory, name, kDraw);
 
   iter--;
   return;
@@ -142,12 +142,15 @@ void TrackFinding( vector<vector<double>> hcoord, vector<vector<double>> &dir, s
 
 //////////////////////////////////////////////////////////////
 
-void PlotHits(vector<vector<Double_t>> hcoord,vector<vector<Double_t>> dir,string name,int ev, int evID, bool kDraw=true){
+void PlotHits(vector<vector<Double_t>> hcoord, vector<vector<Double_t>> dir, string directory, string name, int ev, int _evID, bool kDraw=true){
   
   int n=hcoord.size();
 
   //create array of x and array of z for the plot
-  Double_t x[n],z[n];
+  double* x;
+  double* z;
+  x = new double[n];
+  z = new double[n];
   for(int i=0;i<n;i++){
     z[i]=hcoord[i][0];
     x[i]=hcoord[i][1];
@@ -157,36 +160,43 @@ void PlotHits(vector<vector<Double_t>> hcoord,vector<vector<Double_t>> dir,strin
   //  printf("%s) n dir found %d\n", name.c_str(), n_found);
   TF1* f[n_found];
   for(int i=0;i<n_found;i++){
-    f[i]=new TF1("f1","[0]*x+[1]",-30,30);
+    f[i] = new TF1("f1","[0]*x+[1]", -30, 30);
     f[i]->SetParameter(0,tan(dir[i][0]));
     f[i]->SetParameter(1,dir[i][1]);
   }
 
-  TGraph *g=new TGraph(n,z,x);
-  TCanvas *c=new TCanvas(Form("2D_%s_%s", name.c_str(), "Hits2D"),"Hits2D");
+  TGraph* g = new TGraph(n,z,x);
+  TCanvas* c = new TCanvas(Form("Hits2D_%s", name.c_str()),"Hits2D");
 
   //plot the hits
   g->SetMarkerStyle(3);
   g->Draw("AP");
   for(int i=0;i<n_found;i++)
     f[i]->Draw("SAME");
-  TString filename = Form("%s_%d_%d%s", name.c_str(), ev, evID, ".png");
+  TString filename = Form("%s/%s_%d_%d.png", directory.c_str(), name.c_str(), ev, _evID);
   c->SaveAs(filename);
   
-  if (!kDraw) delete c;
+  if (!kDraw) {
+    for(int i=0; i<n_found; i++){
+      delete f[i];
+    }
+    delete c;
+  }
+
+  return;
 }
 
 ///////////////////////////////////////////////////////////////////////
 
-void PlotHits3D(Double_t x[],Double_t y[],Double_t z[],int n,string name,int ev, int evID, bool kDraw=true){
+void PlotHits3D(int _nTotalHits, Double_t x[], Double_t y[], Double_t z[], int n, string directory, string name, int ev, int _evID, bool kDraw=true){
 
-  TGraph2D *g=new TGraph2D(nTotalHits,x,y,z);
-  TCanvas *c=new TCanvas(Form("3D_%s_%s", name.c_str(), "Hits3D"),"Hits3D");
+  TGraph2D* g = new TGraph2D(_nTotalHits,x,y,z);
+  TCanvas* c = new TCanvas(Form("Hits3D_%s", name.c_str()));
 
   //plot the hits
   g->SetMarkerStyle(3);
   g->Draw("AP");
-  TString filename = Form("%s_%d_%d%s", name.c_str(), ev, evID, ".png");
+  TString filename = Form("%s/%s_%d_%d.png", directory.c_str(), name.c_str(), ev, _evID);
   c->SaveAs(filename);
   
   if (!kDraw) delete c;
@@ -208,20 +218,20 @@ void clear(){
 void DAQ(int reqEv=-9999){
 
   system("mkdir -p ./Immagini/");
-  
+    
   TString inputFileName="anaOut.root";
 
   TFile *inFile=new TFile(inputFileName,"READ");
 
   TTree *T=(TTree*)inFile->Get("hitTree");
 
-  T->SetBranchAddress( "evID",&evID );
-  T->SetBranchAddress( "nHits",&nHits );
-  T->SetBranchAddress( "nTotalHits",&nTotalHits );
-  T->SetBranchAddress( "xCoord",&xCoord );
-  T->SetBranchAddress( "yCoord",&yCoord );
-  T->SetBranchAddress( "zCoord",&zCoord );
-  T->SetBranchAddress( "eDep",&eDep );
+  T->SetBranchAddress( "evID", &evID );
+  T->SetBranchAddress( "nHits", &nHits );
+  T->SetBranchAddress( "nTotalHits", &nTotalHits );
+  T->SetBranchAddress( "xCoord", &xCoord );
+  T->SetBranchAddress( "yCoord", &yCoord );
+  T->SetBranchAddress( "zCoord", &zCoord );
+  T->SetBranchAddress( "eDep", &eDep );
 
   int nEvs=T->GetEntries();
   cout<<"Si sono verificate "<<nEvs<<" conversioni"<<endl;
@@ -255,7 +265,7 @@ void DAQ(int reqEv=-9999){
     
     T->GetEntry(Ev);
 
-    if (reqEv>=0) PlotHits3D(zCoord,xCoord,yCoord,nTotalHits,"Immagini/simu",Ev, evID, last);
+    if (reqEv>=0) PlotHits3D(nTotalHits, zCoord, xCoord, yCoord, nTotalHits, "Immagini", "simu", Ev, evID, last);
     
     //this loop fill the vectors of vectors from the tree branches
     for (int i=0;i<nTotalHits;i++){
@@ -272,10 +282,10 @@ void DAQ(int reqEv=-9999){
       }
     }
     if (zx.size()<3 && zy.size()<3) continue;
-    TrackFinding(zx,traccex, "Immagini/houghZX", last);
-    TrackFinding(zy,traccey, "Immagini/houghZY", last);
-    PlotHits(zx,traccex,"Immagini/simuZX",Ev, evID, last);
-    PlotHits(zy,traccey,"Immagini/simuZY",Ev, evID, last);
+    TrackFinding(zx, traccex, "Immagini", "houghZX", last);
+    TrackFinding(zy, traccey, "Immagini", "houghZY", last);
+    PlotHits(zx, traccex, "Immagini", "simuZX", Ev, evID, last);
+    PlotHits(zy, traccey, "Immagini", "simuZY", Ev, evID, last);
   }
 
   return;
