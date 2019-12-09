@@ -56,61 +56,64 @@ int nInt = 0;
 int iEv = 0;
 int nHits = 0;//number of TIntHits (essentially the number of firing volumes)
 int nTotalHits = 0;//total number of TPathHits (~ nHits*<nPartHits>)
-int ppHit = -1;
-double eLastZ = -1.;
-double pLastZ = -1.;
+// int ppHit = -1;
+// double eLastZ = -1.;
+// double pLastZ = -1.;
 
-Int_t hPart[nMaxHits]={0};
-Int_t hVol[nMaxHits]={0};
-Double_t hVolZ[nMaxHits]={0.};
+// Int_t hPart[nMaxHits]={0};
+// Int_t hVol[nMaxHits]={0};
+// Double_t hVolZ[nMaxHits]={0.};
 
-//  Double_t zPath[nMaxTotalHits];
-Double_t gEne=-9999; 
-Double_t zPath=-9999;
+// //  Double_t zPath[nMaxTotalHits];
+//Double_t gEne=-9999; 
+// Double_t zPath=-9999;
 Double_t xCoord[nMaxTotalHits]={0.};
 Double_t yCoord[nMaxTotalHits]={0.};
 Double_t zCoord[nMaxTotalHits]={0.};
 Double_t eDep[nMaxTotalHits]={0.};
-//Double_t xMom[nMaxTotalHits];
-//Double_t yMom[nMaxTotalHits];
-//Double_t zMom[nMaxTotalHits];
-Double_t eeDep[nMaxTotalHits]={0.};
-Double_t peDep[nMaxTotalHits]={0.};
-int chX[nMaxTotalHits]={0};
-int chY[nMaxTotalHits]={0}; 
+Int_t PDG[nMaxTotalHits]={0};
+Int_t TrID[nMaxTotalHits]={-1};
+Int_t ParID[nMaxTotalHits]={-1};
+// //Double_t xMom[nMaxTotalHits];
+// //Double_t yMom[nMaxTotalHits];
+// //Double_t zMom[nMaxTotalHits];
+// Double_t eeDep[nMaxTotalHits]={0.};
+// Double_t peDep[nMaxTotalHits]={0.};
+// int chX[nMaxTotalHits]={0};
+// int chY[nMaxTotalHits]={0}; 
     
-Double_t exCoord[nMaxTotalHits]={0.};
-Double_t eyCoord[nMaxTotalHits]={0.};
-Double_t ezCoord[nMaxTotalHits]={0.};
-Double_t eexxCoord=-9999.;
-Double_t eexyCoord=-9999.;
-Double_t eexzCoord=-9999.;
-//  Double_t eexxCoord[nMaxTotalHits];
-//  Double_t eexyCoord[nMaxTotalHits];
-//  Double_t eexzCoord[nMaxTotalHits];  
-Double_t exMom[nMaxTotalHits]={0.};
-Double_t eyMom[nMaxTotalHits]={0.};
-Double_t ezMom[nMaxTotalHits]={0.};
-//Double_t eEne[nMaxTotalHits];
-Double_t eEne=-9999.;
-int echX[nMaxTotalHits]={0};
-int echY[nMaxTotalHits]={0}; 
+// Double_t exCoord[nMaxTotalHits]={0.};
+// Double_t eyCoord[nMaxTotalHits]={0.};
+// Double_t ezCoord[nMaxTotalHits]={0.};
+// Double_t eexxCoord=-9999.;
+// Double_t eexyCoord=-9999.;
+// Double_t eexzCoord=-9999.;
+// //  Double_t eexxCoord[nMaxTotalHits];
+// //  Double_t eexyCoord[nMaxTotalHits];
+// //  Double_t eexzCoord[nMaxTotalHits];  
+// Double_t exMom[nMaxTotalHits]={0.};
+// Double_t eyMom[nMaxTotalHits]={0.};
+// Double_t ezMom[nMaxTotalHits]={0.};
+// //Double_t eEne[nMaxTotalHits];
+// Double_t eEne=-9999.;
+// int echX[nMaxTotalHits]={0};
+// int echY[nMaxTotalHits]={0}; 
 
-Double_t pxCoord[nMaxTotalHits]={0.};
-Double_t pyCoord[nMaxTotalHits]={0.};
-Double_t pzCoord[nMaxTotalHits]={0.};
-//  Double_t pexxCoord[nMaxTotalHits];
-//  Double_t pexyCoord[nMaxTotalHits];
-//  Double_t pexzCoord[nMaxTotalHits];
-Double_t pexxCoord=-9999.;
-Double_t pexyCoord=-9999.;
-Double_t pexzCoord=-9999.;
-Double_t pxMom[nMaxTotalHits]={0.};
-Double_t pyMom[nMaxTotalHits]={0.};
-Double_t pzMom[nMaxTotalHits]={0.};
-Double_t pEne=-9999.;
-int pchX[nMaxTotalHits]={0};
-int pchY[nMaxTotalHits]={0};
+// Double_t pxCoord[nMaxTotalHits]={0.};
+// Double_t pyCoord[nMaxTotalHits]={0.};
+// Double_t pzCoord[nMaxTotalHits]={0.};
+// //  Double_t pexxCoord[nMaxTotalHits];
+// //  Double_t pexyCoord[nMaxTotalHits];
+// //  Double_t pexzCoord[nMaxTotalHits];
+// Double_t pexxCoord=-9999.;
+// Double_t pexyCoord=-9999.;
+// Double_t pexzCoord=-9999.;
+// Double_t pxMom[nMaxTotalHits]={0.};
+// Double_t pyMom[nMaxTotalHits]={0.};
+// Double_t pzMom[nMaxTotalHits]={0.};
+// Double_t pEne=-9999.;
+// int pchX[nMaxTotalHits]={0};
+// int pchY[nMaxTotalHits]={0};
 //----------------------------------
 
 void CleanEvent(){
@@ -119,62 +122,66 @@ void CleanEvent(){
   //  iEv = 0;//not initialize this!!!
   nHits = 0;
   nTotalHits = 0;
-  ppHit = -1;
-  eLastZ = -1.;
-  pLastZ = -1.;
+  // ppHit = -1;
+  // eLastZ = -1.;
+  // pLastZ = -1.;
 
-  std::fill_n(hPart, nMaxHits, 0);
-  std::fill_n(hVol, nMaxHits, 0);
-  std::fill_n(hVolZ, nMaxHits, 0.);
+  // std::fill_n(hPart, nMaxHits, 0);
+  // std::fill_n(hVol, nMaxHits, 0);
+  // std::fill_n(hVolZ, nMaxHits, 0.);
   
-  //  Double_t zPath[nMaxTotalHits];
-  gEne=-9999; 
-  zPath=-9999;
-  std::fill_n(xCoord, nMaxTotalHits, 0.);
-  std::fill_n(yCoord, nMaxTotalHits, 0.);
-  std::fill_n(zCoord, nMaxTotalHits, 0.);
-  std::fill_n(eDep, nMaxTotalHits, 0.);
-  //Double_t xMom[nMaxTotalHits];
-  //Double_t yMom[nMaxTotalHits];
-  //Double_t zMom[nMaxTotalHits];
-  std::fill_n(eeDep, nMaxTotalHits, 0.);
-  std::fill_n(peDep, nMaxTotalHits, 0.);
-  std::fill_n(chX, nMaxTotalHits, 0);
-  std::fill_n(chY, nMaxTotalHits, 0);
+  // //  Double_t zPath[nMaxTotalHits];
+  //  gEne=-9999; 
+  // zPath=-9999;
+  std::fill_n(xCoord, nMaxTotalHits, -9999.9);
+  std::fill_n(yCoord, nMaxTotalHits, -9999.9);
+  std::fill_n(zCoord, nMaxTotalHits, -9999.9);
+  std::fill_n(eDep, nMaxTotalHits, -9999.9);
+  std::fill_n(PDG, nMaxTotalHits, 0);
+  std::fill_n(TrID, nMaxTotalHits, -1);
+  std::fill_n(ParID, nMaxTotalHits, -1);  
+  // //Double_t xMom[nMaxTotalHits];
+  // //Double_t yMom[nMaxTotalHits];
+  // //Double_t zMom[nMaxTotalHits];
+  // std::fill_n(eeDep, nMaxTotalHits, 0.);
+  // std::fill_n(peDep, nMaxTotalHits, 0.);
+  // std::fill_n(chX, nMaxTotalHits, 0);
+  // std::fill_n(chY, nMaxTotalHits, 0);
       
-  std::fill_n(exCoord, nMaxTotalHits, 0.);
-  std::fill_n(eyCoord, nMaxTotalHits, 0.);
-  std::fill_n(ezCoord, nMaxTotalHits, 0.);
-  eexxCoord=-9999.;
-  eexyCoord=-9999.;
-  eexzCoord=-9999.;
-  //  Double_t eexxCoord[nMaxTotalHits];
-  //  Double_t eexyCoord[nMaxTotalHits];
-  //  Double_t eexzCoord[nMaxTotalHits];  
-  std::fill_n(exMom, nMaxTotalHits, 0.);
-  std::fill_n(eyMom, nMaxTotalHits, 0.);
-  std::fill_n(ezMom, nMaxTotalHits, 0.);
-  //Double_t eEne[nMaxTotalHits];
-  eEne=-9999.;
-  std::fill_n(echX, nMaxTotalHits, 0);
-  std::fill_n(echY, nMaxTotalHits, 0);
+  // std::fill_n(exCoord, nMaxTotalHits, 0.);
+  // std::fill_n(eyCoord, nMaxTotalHits, 0.);
+  // std::fill_n(ezCoord, nMaxTotalHits, 0.);
+  // eexxCoord=-9999.;
+  // eexyCoord=-9999.;
+  // eexzCoord=-9999.;
+  // //  Double_t eexxCoord[nMaxTotalHits];
+  // //  Double_t eexyCoord[nMaxTotalHits];
+  // //  Double_t eexzCoord[nMaxTotalHits];  
+  // std::fill_n(exMom, nMaxTotalHits, 0.);
+  // std::fill_n(eyMom, nMaxTotalHits, 0.);
+  // std::fill_n(ezMom, nMaxTotalHits, 0.);
+  // //Double_t eEne[nMaxTotalHits];
+  // eEne=-9999.;
+  // std::fill_n(echX, nMaxTotalHits, 0);
+  // std::fill_n(echY, nMaxTotalHits, 0);
 
-  std::fill_n(pxCoord, nMaxTotalHits, 0.);
-  std::fill_n(pyCoord, nMaxTotalHits, 0.);
-  std::fill_n(pzCoord, nMaxTotalHits, 0.);
-  //  Double_t pexxCoord[nMaxTotalHits];
-  //  Double_t pexyCoord[nMaxTotalHits];
-  //  Double_t pexzCoord[nMaxTotalHits];
-  pexxCoord=-9999.;
-  pexyCoord=-9999.;
-  pexzCoord=-9999.;
-  std::fill_n(pxMom, nMaxTotalHits, 0.);
-  std::fill_n(pyMom, nMaxTotalHits, 0.);
-  std::fill_n(pzMom, nMaxTotalHits, 0.);
-  pEne=-9999.;
-  std::fill_n(pchX, nMaxTotalHits, 0);
-  std::fill_n(pchY, nMaxTotalHits, 0);
-  
+  // std::fill_n(pxCoord, nMaxTotalHits, 0.);
+  // std::fill_n(pyCoord, nMaxTotalHits, 0.);
+  // std::fill_n(pzCoord, nMaxTotalHits, 0.);
+  // //  Double_t pexxCoord[nMaxTotalHits];
+  // //  Double_t pexyCoord[nMaxTotalHits];
+  // //  Double_t pexzCoord[nMaxTotalHits];
+  // pexxCoord=-9999.;
+  // pexyCoord=-9999.;
+  // pexzCoord=-9999.;
+  // std::fill_n(pxMom, nMaxTotalHits, 0.);
+  // std::fill_n(pyMom, nMaxTotalHits, 0.);
+  // std::fill_n(pzMom, nMaxTotalHits, 0.);
+  // pEne=-9999.;
+  // std::fill_n(pchX, nMaxTotalHits, 0);
+  // std::fill_n(pchY, nMaxTotalHits, 0);
+
+  return;
 }
 
 void SimpleAnalysis(TString inputFileName, TString outputFileName) {
@@ -313,68 +320,71 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   runTree->Branch("nLayers",&nLayers,"nLayers/I");
   runTree->Branch("xyAlign",&xyAlign,"xyAlign[nLayers]/I");
   runTree->Branch("nEvts",&nEvts,"nEvts/I");
-  runTree->Branch("gEne",&gEne,"gEne/D");
+  //  runTree->Branch("gEne",&gEne,"gEne/D");
   
   TTree *hitTree =  new TTree("hitTree","tree of layer hits");
 
   // hit
-  hitTree->Branch("hPart",&hPart,"hPart[nHits]/I");
-  hitTree->Branch("hVol",&hVol,"hVol[nHits]/I");  
-  hitTree->Branch("hVolZ",&hVolZ,"hVolZ[nHits]/D");  
+  // hitTree->Branch("hPart",&hPart,"hPart[nHits]/I");
+  // hitTree->Branch("hVol",&hVol,"hVol[nHits]/I");  
+  // hitTree->Branch("hVolZ",&hVolZ,"hVolZ[nHits]/D");  
   
   hitTree->Branch("evID",&iEv,"evID/I");
   hitTree->Branch("nHits",&nHits,"nHits/I");
   hitTree->Branch("nTotalHits",&nTotalHits,"nTotalHits/I");
-  hitTree->Branch("ppHit",&ppHit,"ppHit/I");
-  hitTree->Branch("eLastZ",&eLastZ,"eLastZ/D");
-  hitTree->Branch("pLastZ",&pLastZ,"pLastZ/D");
+  // hitTree->Branch("ppHit",&ppHit,"ppHit/I");
+  // hitTree->Branch("eLastZ",&eLastZ,"eLastZ/D");
+  // hitTree->Branch("pLastZ",&pLastZ,"pLastZ/D");
 
   // primary gamma and pprod energies
-  //  hitTree->Branch("zPath",&zPath,"zPath[nTotalHits]/D");
-  hitTree->Branch("zPath",&zPath,"zPath/D");  
-  hitTree->Branch("eEne",&eEne,"eEne/D");
-  hitTree->Branch("pEne",&pEne,"pEne/D");
+  // //  hitTree->Branch("zPath",&zPath,"zPath[nTotalHits]/D");
+  // hitTree->Branch("zPath",&zPath,"zPath/D");  
+  // hitTree->Branch("eEne",&eEne,"eEne/D");
+  // hitTree->Branch("pEne",&pEne,"pEne/D");
   
   hitTree->Branch("xCoord",&xCoord,"xCoord[nTotalHits]/D");
   hitTree->Branch("yCoord",&yCoord,"yCoord[nTotalHits]/D");
   hitTree->Branch("zCoord",&zCoord,"zCoord[nTotalHits]/D");  
-  hitTree->Branch("eDep",&eDep,"eDep[nTotalHits]/D");  
-  //hitTree->Branch("xMom",&xMom,"xMom[nTotalHits]/D");
-  //hitTree->Branch("yMom",&yMom,"yMom[nTotalHits]/D");
-  //hitTree->Branch("zMom",&zMom,"zMom[nTotalHits]/D");
+  hitTree->Branch("eDep",&eDep,"eDep[nTotalHits]/D");
+  hitTree->Branch("PDG",&PDG,"PDG[nTotalHits]/I");
+  hitTree->Branch("TrID",&TrID,"TrID[nTotalHits]/I");
+  hitTree->Branch("ParID",&ParID,"ParID[nTotalHits]/I");
+  // //hitTree->Branch("xMom",&xMom,"xMom[nTotalHits]/D");
+  // //hitTree->Branch("yMom",&yMom,"yMom[nTotalHits]/D");
+  // //hitTree->Branch("zMom",&zMom,"zMom[nTotalHits]/D");
   
-  // electron
-  hitTree->Branch("exCoord",&exCoord,"exCoord[nTotalHits]/D");
-  hitTree->Branch("eyCoord",&eyCoord,"eyCoord[nTotalHits]/D");
-  hitTree->Branch("ezCoord",&ezCoord,"ezCoord[nTotalHits]/D");  
-  hitTree->Branch("eexxCoord",&eexxCoord,"eexxCoord/D");
-  hitTree->Branch("eexyCoord",&eexyCoord,"eexyCoord/D");
-  hitTree->Branch("eexzCoord",&eexzCoord,"eexzCoord/D");  
-  hitTree->Branch("exMom",&exMom,"exMom[nTotalHits]/D");
-  hitTree->Branch("eyMom",&eyMom,"eyMom[nTotalHits]/D");
-  hitTree->Branch("ezMom",&ezMom,"ezMom[nTotalHits]/D");
-  //  hitTree->Branch("eEne",&eEne,"eEne[nTotalHits]/D");
-  hitTree->Branch("eeDep",&eeDep,"eeDep[nTotalHits]/D");
+  // // electron
+  // hitTree->Branch("exCoord",&exCoord,"exCoord[nTotalHits]/D");
+  // hitTree->Branch("eyCoord",&eyCoord,"eyCoord[nTotalHits]/D");
+  // hitTree->Branch("ezCoord",&ezCoord,"ezCoord[nTotalHits]/D");  
+  // hitTree->Branch("eexxCoord",&eexxCoord,"eexxCoord/D");
+  // hitTree->Branch("eexyCoord",&eexyCoord,"eexyCoord/D");
+  // hitTree->Branch("eexzCoord",&eexzCoord,"eexzCoord/D");  
+  // hitTree->Branch("exMom",&exMom,"exMom[nTotalHits]/D");
+  // hitTree->Branch("eyMom",&eyMom,"eyMom[nTotalHits]/D");
+  // hitTree->Branch("ezMom",&ezMom,"ezMom[nTotalHits]/D");
+  // //  hitTree->Branch("eEne",&eEne,"eEne[nTotalHits]/D");
+  // hitTree->Branch("eeDep",&eeDep,"eeDep[nTotalHits]/D");
   
-  // positron
-  hitTree->Branch("pxCoord",&pxCoord,"pxCoord[nTotalHits]/D");
-  hitTree->Branch("pyCoord",&pyCoord,"pyCoord[nTotalHits]/D");
-  hitTree->Branch("pzCoord",&pzCoord,"pzCoord[nTotalHits]/D");
-  hitTree->Branch("pexxCoord",&pexxCoord,"pexxCoord/D");
-  hitTree->Branch("pexyCoord",&pexyCoord,"pexyCoord/D");
-  hitTree->Branch("pexzCoord",&pexzCoord,"pexzCoord/D");  
-  hitTree->Branch("pxMom",&pxMom,"pxMom[nTotalHits]/D");
-  hitTree->Branch("pyMom",&pyMom,"pyMom[nTotalHits]/D");
-  hitTree->Branch("pzMom",&pzMom,"pzMom[nTotalHits]/D");
-  //  hitTree->Branch("pEne",&pEne,"pEne[nTotalHits]/D");
-  hitTree->Branch("peDep",&peDep,"peDep[nTotalHits]/D");
+  // // positron
+  // hitTree->Branch("pxCoord",&pxCoord,"pxCoord[nTotalHits]/D");
+  // hitTree->Branch("pyCoord",&pyCoord,"pyCoord[nTotalHits]/D");
+  // hitTree->Branch("pzCoord",&pzCoord,"pzCoord[nTotalHits]/D");
+  // hitTree->Branch("pexxCoord",&pexxCoord,"pexxCoord/D");
+  // hitTree->Branch("pexyCoord",&pexyCoord,"pexyCoord/D");
+  // hitTree->Branch("pexzCoord",&pexzCoord,"pexzCoord/D");  
+  // hitTree->Branch("pxMom",&pxMom,"pxMom[nTotalHits]/D");
+  // hitTree->Branch("pyMom",&pyMom,"pyMom[nTotalHits]/D");
+  // hitTree->Branch("pzMom",&pzMom,"pzMom[nTotalHits]/D");
+  // //  hitTree->Branch("pEne",&pEne,"pEne[nTotalHits]/D");
+  // hitTree->Branch("peDep",&peDep,"peDep[nTotalHits]/D");
     
-  hitTree->Branch("chX",&chX,"chX[nTotalHits]/I");
-  hitTree->Branch("chY",&chY,"chY[nTotalHits]/I");
-  hitTree->Branch("echX",&echX,"echX[nTotalHits]/I");
-  hitTree->Branch("echY",&echY,"echY[nTotalHits]/I");
-  hitTree->Branch("pchX",&pchX,"pchX[nTotalHits]/I");
-  hitTree->Branch("pchY",&pchY,"pchY[nTotalHits]/I");
+  // hitTree->Branch("chX",&chX,"chX[nTotalHits]/I");
+  // hitTree->Branch("chY",&chY,"chY[nTotalHits]/I");
+  // hitTree->Branch("echX",&echX,"echX[nTotalHits]/I");
+  // hitTree->Branch("echY",&echY,"echY[nTotalHits]/I");
+  // hitTree->Branch("pchX",&pchX,"pchX[nTotalHits]/I");
+  // hitTree->Branch("pchY",&pchY,"pchY[nTotalHits]/I");
 
   double mom=0.;
   int eno=0;
@@ -440,52 +450,52 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     
     float totEDep = 0.;   
    
-    // efficiency calc
+    // // efficiency calc
     bool pprod=false; 
 
-    // true Y bending
-    //double mom=1.;  // mom in GV (not geant4 ene
-    if (hReader->GetHit("siTileLog",0)) {
-      mom=hReader->GetHit("siTileLog",0)->GetPartHit(0)->entranceMomentum[2];
-    }
-    else {
-      mom=0.0;
-    }
+    // // true Y bending
+    // //double mom=1.;  // mom in GV (not geant4 ene
+    // if (hReader->GetHit("siTileLog",0)) {
+    //   mom=hReader->GetHit("siTileLog",0)->GetPartHit(0)->entranceMomentum[2];
+    // }
+    // else {
+    //   mom=0.0;
+    // }
     
-    //double magf=1.; // mag field [tesla]
-    double magf=geoParams->GetRealGeoParam("magFieldVal");
-    double magz=geoParams->GetRealGeoParam("magVolZ")/100.; // mag z size [m]
-    double ro=0.;
-    double dYtrue=0.;
-    double thtrue=0.;
-    double thcenter=0.;
-    double thtrueV=0.;
+    // //double magf=1.; // mag field [tesla]
+    // double magf=geoParams->GetRealGeoParam("magFieldVal");
+    // double magz=geoParams->GetRealGeoParam("magVolZ")/100.; // mag z size [m]
+    // double ro=0.;
+    // double dYtrue=0.;
+    // double thtrue=0.;
+    // double thcenter=0.;
+    // double thtrueV=0.;
     
-    if(magf){
-      ro=mom/magf/0.3;  // radius of curvature [m]
-      dYtrue = ro*(1-sqrt(1-(magz/ro)*(magz/ro)));
-      thtrue = atan2(dYtrue,magz);
-      thcenter = atan2(magz,(ro-dYtrue));
-    }
+    // if(magf){
+    //   ro=mom/magf/0.3;  // radius of curvature [m]
+    //   dYtrue = ro*(1-sqrt(1-(magz/ro)*(magz/ro)));
+    //   thtrue = atan2(dYtrue,magz);
+    //   thcenter = atan2(magz,(ro-dYtrue));
+    // }
  
-    TVector3 vzeta(0.,0.,mom);
-    //    TVector3 vtrue(0.,dYtrue,mom);
-    TVector3 vtrue(0.,mom*sin(thcenter),mom*cos(thcenter));
-    TVector3 vrec;
+    // TVector3 vzeta(0.,0.,mom);
+    // //    TVector3 vtrue(0.,dYtrue,mom);
+    // TVector3 vtrue(0.,mom*sin(thcenter),mom*cos(thcenter));
+    // TVector3 vrec;
 
-    thtrueV= vtrue.Angle(vzeta);
+    // thtrueV= vtrue.Angle(vzeta);
 
-    if(DB)
-      std::cout<<"DY true: "<<mom<<" "<<ro<<" "<<dYtrue*100<<" TH "<<thtrue*180/TMath::Pi()<<" THC "<<thcenter*180/TMath::Pi()<<" THV "<<thtrueV*180/TMath::Pi()<<std::endl;
+    // if(DB)
+    //   std::cout<<"DY true: "<<mom<<" "<<ro<<" "<<dYtrue*100<<" TH "<<thtrue*180/TMath::Pi()<<" THC "<<thcenter*180/TMath::Pi()<<" THV "<<thtrueV*180/TMath::Pi()<<std::endl;
     
-    // Hits loop
-    double yfront=0.;
-    double yend1=0.;
-    double yend2=0.;
-    double threc=0.;
+    // // Hits loop
+    // double yfront=0.;
+    // double yend1=0.;
+    // double yend2=0.;
+    // double threc=0.;
 
     for (int iHit = 0; iHit < nHits; iHit++) {//una hit e' semplicemente un volume logico che si e' acceso
-      hPart[iHit]=0;	
+      //      hPart[iHit]=0;	
       thisHit = vTIntHit.at(iHit);
       int nPHits= thisHit->GetNPartHits();
       
@@ -493,8 +503,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	std::cout<<"******* HIT: "<< iHit <<" --->>>PARTHITS: "<<nPHits<<" detind: "<<hReader->GetDetectorIndex("siTileLog")<<" "<<thisHit->GetVolumeName()<<" "<<thisHit->GetVolumeID()<<" pos:"<<thisHit->GetVolumePosition()[2]<<std::endl;
       }
 
-      hVol[iHit]=thisHit->GetVolumeID();
-      hVolZ[iHit]=thisHit->GetVolumePosition()[2];
+      // hVol[iHit]=thisHit->GetVolumeID();
+      // hVolZ[iHit]=thisHit->GetVolumePosition()[2];
       
       if (nPHits>=3) {
 	std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" --->>>3INT"<< std::endl;
@@ -503,10 +513,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	}
       }
 
-      double zp=-9999;
-      double ex=-9999;
-      double ey=-9999;
-      double ez=-9999;
+      // double zp=-9999;
+      // double ex=-9999;
+      // double ey=-9999;
+      // double ez=-9999;
 
       for (int iPHit =0; iPHit<nPHits; iPHit++){//queste sono le vere hit particella per particella
 	nTotalHits++;
@@ -516,162 +526,163 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	if (nPHits>=2||pprod)
 	  thisPHit->DumpHit();
 	
-	if(thisPHit->parentID==0&&thisPHit->particlePdg==22){ /// primary particle hit values 
-	  //zPath[nTotalHits-1]=thisPHit->pathLength;
-	  //xCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
-	  //yCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
-	  //zCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
-	  //xMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
-	  //yMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
-	  //zMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
-	  chX[nTotalHits-1]=int((thisPHit->entrancePoint[0]+msidex/2.)/pitch);
-	  chY[nTotalHits-1]=int((thisPHit->entrancePoint[1]+msidey/2.)/pitch);
-	  //	  ePDepHisto->Fill(1e3*thisPHit->eDep);
-	  zp=thisPHit->pathLength;
-	}  //// primary particle values
+	// if(thisPHit->parentID==0&&thisPHit->particlePdg==22){ /// primary particle hit values 
+	//   //zPath[nTotalHits-1]=thisPHit->pathLength;
+	//   //xCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
+	//   //yCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
+	//   //zCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
+	//   //xMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
+	//   //yMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
+	//   //zMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
+	//   chX[nTotalHits-1]=int((thisPHit->entrancePoint[0]+msidex/2.)/pitch);
+	//   chY[nTotalHits-1]=int((thisPHit->entrancePoint[1]+msidey/2.)/pitch);
+	//   //	  ePDepHisto->Fill(1e3*thisPHit->eDep);
+	//   zp=thisPHit->pathLength;
+	// }  //// primary particle values
 
-	if(thisPHit->particlePdg==11||thisPHit->particlePdg==-11){  /// secondary particles (electron and positron)
-	  xCoord[nTotalHits-1]=(thisPHit->entrancePoint[0]+thisPHit->exitPoint[0])/2;
-	  yCoord[nTotalHits-1]=(thisPHit->entrancePoint[1]+thisPHit->exitPoint[1])/2;
-	  zCoord[nTotalHits-1]=(thisPHit->entrancePoint[2]+thisPHit->exitPoint[2])/2;
-	  eDep[nTotalHits-1]=1e3*thisPHit->eDep;
-	}
+	//	if(thisPHit->particlePdg==11||thisPHit->particlePdg==-11){  /// secondary particles (electron and positron)
+	xCoord[nTotalHits-1]=(thisPHit->entrancePoint[0]+thisPHit->exitPoint[0])/2;
+	yCoord[nTotalHits-1]=(thisPHit->entrancePoint[1]+thisPHit->exitPoint[1])/2;
+	//	  zCoord[nTotalHits-1]=(thisPHit->entrancePoint[2]+thisPHit->exitPoint[2])/2;
+	zCoord[nTotalHits-1]=thisHit->GetVolumePosition()[2];
+	eDep[nTotalHits-1]=1e3*thisPHit->eDep;
+	PDG[nTotalHits-1]=thisPHit->particlePdg;
+	TrID[nTotalHits-1]=thisPHit->trackID;
+	ParID[nTotalHits-1]=thisPHit->parentID;
+	//	}
 
-
-	if(thisPHit->parentID==1&&thisPHit->particlePdg==11){ /// electron
-	  //eEne[nTotalHits-1]=thisPHit->entranceEnergy;
-	  exCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
-	  eyCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
-	  ezCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
-	  //eexxCoord[nTotalHits-1]=thisPHit->exitPoint[0];
-	  //eexyCoord[nTotalHits-1]=thisPHit->exitPoint[1];
-	  //eexzCoord[nTotalHits-1]=thisPHit->exitPoint[2];
-	  ex=thisPHit->exitPoint[0];
-	  ey=thisPHit->exitPoint[1];
-	  ez=thisPHit->exitPoint[2];
-	  eEne=thisPHit->entranceEnergy;
-	  exMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
-	  eyMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
-	  ezMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
-	  eeDep[nTotalHits-1]=1e3*thisPHit->eDep;
-	  echX[nTotalHits-1]=int((exCoord[nTotalHits-1]+msidex/2.)/pitch);
-	  echY[nTotalHits-1]=int((eyCoord[nTotalHits-1]+msidey/2.)/pitch);
-	  eno++;
-	  hPart[iHit] +=1;
-	}  //// electron values
-
+	// if(thisPHit->parentID==1&&thisPHit->particlePdg==11){ /// electron
+	//   //eEne[nTotalHits-1]=thisPHit->entranceEnergy;
+	//   exCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
+	//   eyCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
+	//   ezCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
+	//   //eexxCoord[nTotalHits-1]=thisPHit->exitPoint[0];
+	//   //eexyCoord[nTotalHits-1]=thisPHit->exitPoint[1];
+	//   //eexzCoord[nTotalHits-1]=thisPHit->exitPoint[2];
+	//   ex=thisPHit->exitPoint[0];
+	//   ey=thisPHit->exitPoint[1];
+	//   ez=thisPHit->exitPoint[2];
+	//   eEne=thisPHit->entranceEnergy;
+	//   exMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
+	//   eyMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
+	//   ezMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
+	//   eeDep[nTotalHits-1]=1e3*thisPHit->eDep;
+	//   echX[nTotalHits-1]=int((exCoord[nTotalHits-1]+msidex/2.)/pitch);
+	//   echY[nTotalHits-1]=int((eyCoord[nTotalHits-1]+msidey/2.)/pitch);
+	//   eno++;
+	//   hPart[iHit] +=1;
+	// }  //// electron values
 
 	if(thisPHit->parentID==1&&thisPHit->particlePdg==-11){ /// positron
-	  //pEne[nTotalHits-1]=thisPHit->entranceEnergy;
-	  pxCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
-	  pyCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
-	  pzCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
-	  //pexxCoord[nTotalHits-1]=thisPHit->exitPoint[0];
-	  //pexyCoord[nTotalHits-1]=thisPHit->exitPoint[1];
-	  //pexzCoord[nTotalHits-1]=thisPHit->exitPoint[2];
-	  pxMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
-	  pyMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
-	  pzMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
-	  peDep[nTotalHits-1]=1e3*thisPHit->eDep;
-	  pchX[nTotalHits-1]=int((pxCoord[nTotalHits-1]+msidex/2.)/pitch);
-	  pchY[nTotalHits-1]=int((pyCoord[nTotalHits-1]+msidey/2.)/pitch);
-	  pno++;
-	  hPart[iHit] +=2;
-	  if(DB)
-	    std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" --->>> PPROD POSITRON PHIT: "<< iPHit<<" eno "<<eno<<" pno "<<pno<< std::endl;	  
+	//   //pEne[nTotalHits-1]=thisPHit->entranceEnergy;
+	//   pxCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
+	//   pyCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
+	//   pzCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
+	//   //pexxCoord[nTotalHits-1]=thisPHit->exitPoint[0];
+	//   //pexyCoord[nTotalHits-1]=thisPHit->exitPoint[1];
+	//   //pexzCoord[nTotalHits-1]=thisPHit->exitPoint[2];
+	//   pxMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
+	//   pyMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
+	//   pzMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
+	//   peDep[nTotalHits-1]=1e3*thisPHit->eDep;
+	//   pchX[nTotalHits-1]=int((pxCoord[nTotalHits-1]+msidex/2.)/pitch);
+	//   pchY[nTotalHits-1]=int((pyCoord[nTotalHits-1]+msidey/2.)/pitch);
+	//   pno++;
+	//   hPart[iHit] +=2;
+	//   if(DB)
+	//     std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" --->>> PPROD POSITRON PHIT: "<< iPHit<<" eno "<<eno<<" pno "<<pno<< std::endl;	  
 
 	  if (!pprod){
 	    pprod=true;
-	    ppHit=iHit;
-	    pexxCoord=thisPHit->exitPoint[0];
-	    pexyCoord=thisPHit->exitPoint[1];
-	    pexzCoord=thisPHit->exitPoint[2];
-	    pEne=thisPHit->entranceEnergy;
+	//     ppHit=iHit;
+	//     pexxCoord=thisPHit->exitPoint[0];
+	//     pexyCoord=thisPHit->exitPoint[1];
+	//     pexzCoord=thisPHit->exitPoint[2];
+	//     pEne=thisPHit->entranceEnergy;
 
-	    gEne=mom;
-	    zPath=zp;
-	    eexxCoord=ex;
-	    eexyCoord=ey;
-	    eexzCoord=ez;
+	//     gEne=mom;
+	//     zPath=zp;
+	//     eexxCoord=ex;
+	//     eexyCoord=ey;
+	//     eexzCoord=ez;
 	  }	  
 	} //// positron values
 
       } // loop on particle hits
 
       
-      //eDep[nTotalHits-1]=1e3*thisHit->eDep;
-      totEDep += thisHit->eDep;
-      if(DB)
-	std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" nPART: "<< hPart[iHit]<< std::endl;
+      // //eDep[nTotalHits-1]=1e3*thisHit->eDep;
+      // totEDep += thisHit->eDep;
+      // if(DB)
+      // 	std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" nPART: "<< hPart[iHit]<< std::endl;
       
     } // loop on hits
 
-    if(ppHit>=0){
-      // layer ch part multiplicity
-      Int_t lpmult=0;
-      int fhz=nHits;
-      eLastZ=hVolZ[ppHit];
-      pLastZ=hVolZ[ppHit];
-      double tmplz=hVolZ[ppHit];
-      for (int ihh=ppHit+1;ihh<nHits;ihh++){
+    // if(ppHit>=0){
+    //   // layer ch part multiplicity
+    //   Int_t lpmult=0;
+    //   int fhz=nHits;
+    //   eLastZ=hVolZ[ppHit];
+    //   pLastZ=hVolZ[ppHit];
+    //   double tmplz=hVolZ[ppHit];
+    //   for (int ihh=ppHit+1;ihh<nHits;ihh++){
 
-	lpmult=hPart[ihh];    	  
-	if(lpmult==0)
-	  continue;
+    // 	lpmult=hPart[ihh];    	  
+    // 	if(lpmult==0)
+    // 	  continue;
 	
-	if (lpmult==3){
-	  eLastZ=hVolZ[ihh];
-	  pLastZ=hVolZ[ihh];
-	  if(DB)
-	    std::cout<<"EVT: "<<iEv<<" HIT: "<< ihh <<" VZ: "<<hVolZ[ihh]<<" HPART: "<<hPart[ihh]<<" LPMULT: "<<lpmult<<" EPLAST: "<< eLastZ<<" "<<pLastZ<< std::endl;
-	  continue;
-	}else{
+    // 	if (lpmult==3){
+    // 	  eLastZ=hVolZ[ihh];
+    // 	  pLastZ=hVolZ[ihh];
+    // 	  if(DB)
+    // 	    std::cout<<"EVT: "<<iEv<<" HIT: "<< ihh <<" VZ: "<<hVolZ[ihh]<<" HPART: "<<hPart[ihh]<<" LPMULT: "<<lpmult<<" EPLAST: "<< eLastZ<<" "<<pLastZ<< std::endl;
+    // 	  continue;
+    // 	}else{
 	  
-	  if(hPart[ihh]==1)
-	    eLastZ=hVolZ[ihh];
-	  if(hPart[ihh]==2)
-	    pLastZ=hVolZ[ihh];
-	  if(DB)
-	    std::cout<<"***EVT: "<<iEv<<" HIT: "<< ihh <<" VZ: "<<hVolZ[ihh]<<" HPART: "<<hPart[ihh]<<" LPMULT: "<<lpmult<<" EPLAST: "<< eLastZ<<" "<<pLastZ<<std::endl;
+    // 	  if(hPart[ihh]==1)
+    // 	    eLastZ=hVolZ[ihh];
+    // 	  if(hPart[ihh]==2)
+    // 	    pLastZ=hVolZ[ihh];
+    // 	  if(DB)
+    // 	    std::cout<<"***EVT: "<<iEv<<" HIT: "<< ihh <<" VZ: "<<hVolZ[ihh]<<" HPART: "<<hPart[ihh]<<" LPMULT: "<<lpmult<<" EPLAST: "<< eLastZ<<" "<<pLastZ<<std::endl;
 	  
-	  double hvz=hVolZ[ihh];
+    // 	  double hvz=hVolZ[ihh];
 	  
-	  for (int jhh=ihh+1;jhh<nHits;jhh++){
+    // 	  for (int jhh=ihh+1;jhh<nHits;jhh++){
 	    
-	    if (hVolZ[jhh]==hvz&&hPart[jhh]!=0){
-	      lpmult+=hPart[jhh];
-	      if(hPart[jhh]==1)
-		eLastZ=hVolZ[jhh];
-	      if(hPart[jhh]==2)
-		pLastZ=hVolZ[jhh];	    
-	      fhz=jhh;
-	      if(DB)
-		std::cout<<"---> EVT: "<<iEv<<" HIT: "<< fhz <<" VZ: "<<hVolZ[jhh]<<" HPART: "<<hPart[jhh]<<" LPMULT: "<<lpmult<<" RECEPLASTZ: "<< eLastZ<<" "<<pLastZ<< std::endl;
-	    }else{
-	      continue;
-	    }
-	  }
+    // 	    if (hVolZ[jhh]==hvz&&hPart[jhh]!=0){
+    // 	      lpmult+=hPart[jhh];
+    // 	      if(hPart[jhh]==1)
+    // 		eLastZ=hVolZ[jhh];
+    // 	      if(hPart[jhh]==2)
+    // 		pLastZ=hVolZ[jhh];	    
+    // 	      fhz=jhh;
+    // 	      if(DB)
+    // 		std::cout<<"---> EVT: "<<iEv<<" HIT: "<< fhz <<" VZ: "<<hVolZ[jhh]<<" HPART: "<<hPart[jhh]<<" LPMULT: "<<lpmult<<" RECEPLASTZ: "<< eLastZ<<" "<<pLastZ<< std::endl;
+    // 	    }else{
+    // 	      continue;
+    // 	    }
+    // 	  }
 
-	}
-      }
-    }//IF PPROD
-    
-    if(!intInfo&&pprod)
-      {
+    // 	}
+    //   }
+    // }//IF PPROD
 
-	hitTree->Fill();
-	
-	//	  std::cout<<"LAST: "<<yend1<<" -> substitution: "<<threcV*180/TMath::Pi()<<" "<<lastZ<<" ="<<tan(threcV)*(60.-lastZ)<<std::endl;
-	//        yend1=tan(threcV)*(60.-lastZ);
-
-	// dbHisto->Fill(10*(yend1-yfront)-1e3*dYtrue);
-
-	//	dthHisto->Fill((threc-thtrue)*180/TMath::Pi());
-	//dthVHisto->Fill((vrec.Angle(vtrue))*180/TMath::Pi());
-	//eDepHisto->Fill(1e3*totEDep);
-	//      xyHisto->Fill(x,y);
-	//      std::cout<<"EVT "<<iEv<<" EDep [MeV]: "<<1e3*totEDep<<std::endl;
-      }
+    if (!intInfo&&pprod) {
+      
+      hitTree->Fill();
+      
+      //	  std::cout<<"LAST: "<<yend1<<" -> substitution: "<<threcV*180/TMath::Pi()<<" "<<lastZ<<" ="<<tan(threcV)*(60.-lastZ)<<std::endl;
+      //        yend1=tan(threcV)*(60.-lastZ);
+      
+      // dbHisto->Fill(10*(yend1-yfront)-1e3*dYtrue);
+      
+      //	dthHisto->Fill((threc-thtrue)*180/TMath::Pi());
+      //dthVHisto->Fill((vrec.Angle(vtrue))*180/TMath::Pi());
+      //eDepHisto->Fill(1e3*totEDep);
+      //      xyHisto->Fill(x,y);
+      //      std::cout<<"EVT "<<iEv<<" EDep [MeV]: "<<1e3*totEDep<<std::endl;
+    }
     
     //    GGSTMCTruthInfo *mcTruthInfo = mcReader-> ??; 
     // MC reader
@@ -734,10 +745,14 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
       zIntHisto->Write();
       xyIntHisto->Write();
   */
+  
   runTree->Write();  
-  hitTree->Write();  
+  hitTree->Write();
+  
   outFile->Close();
   delete outFile;
+  
   COUT(INFO) << "Analysis finished" << ENDL;
-
+  
+  return;
 }

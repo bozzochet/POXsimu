@@ -1,3 +1,14 @@
+#include "TMath.h"
+#include "TStyle.h"
+#include "TCanvas.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TString.h"
+#include "TF1.h"
+#include "TGraph.h"
+#include "TFile.h"
+#include "TTree.h"
+
 using namespace std;
 
 struct Hit2D {
@@ -5,6 +16,11 @@ struct Hit2D {
   double XorY;
 };
 typedef vector<Hit2D> Hit2DColl;
+struct Straight {
+  double Th;
+  double R;
+};
+typedef vector<Straight> StraightColl;
 
 int evID=-9999;
 
@@ -22,7 +38,7 @@ int binr=100; double minr=-3, maxr=3;     //binning of r
 
 ///////////////////////////////////////////////////////////////////
 
-void Refine(Hit2DColl &hits, Hit2D &bdir, Hit2DColl &renegade, int iter=0){
+void Refine(Hit2DColl &hits, Straight &bdir, Hit2DColl &renegade, int iter=0){
   
   //the function recorsively calls itself studing the hits at different z values each time
   if(iter>45) return;   //exit condition for the loop 
@@ -38,7 +54,7 @@ void Refine(Hit2DColl &hits, Hit2D &bdir, Hit2DColl &renegade, int iter=0){
   for(int j=0;j<s;j++){
    // cout<<j<<"/"<<s<<endl;
     if (hits[j].Z<pos && hits[j].Z>pos-1){    //layer belonging condition
-      double xexp = bdir.Z/cos(bdir.Z) + tan(bdir.Z)*hits[j].Z;
+      double xexp = bdir.R/cos(bdir.Th) + tan(bdir.Th)*hits[j].Z;
       double d=TMath::Abs(hits[j].XorY-xexp);
 
       if(d<min){      //between the coplanar hits we look for the nearest to the expected point
@@ -80,8 +96,8 @@ void Refine(Hit2DColl &hits, Hit2D &bdir, Hit2DColl &renegade, int iter=0){
         }
       }
     }
-    bdir.Z=sumth/conta;
-    bdir.XorY=(sumr/conta);
+    bdir.Th=sumth/conta;
+    bdir.R=(sumr/conta);
     
     Refine(newhits,bdir,renegade,iter+1);
   }
@@ -91,7 +107,7 @@ void Refine(Hit2DColl &hits, Hit2D &bdir, Hit2DColl &renegade, int iter=0){
 
 ///////////////////////////////////////////////////////////////////
 
-void TrackFinding(Hit2DColl hcoord, Hit2DColl &dir, string directory, string name, bool vert, bool kDraw=true){
+void TrackFinding(Hit2DColl hcoord, StraightColl &dir, string directory, string name, bool vert, bool kDraw=true){
   
   int divisions= gStyle->GetNumberContours();
   gStyle->SetNumberContours(8);
@@ -138,9 +154,9 @@ void TrackFinding(Hit2DColl hcoord, Hit2DColl &dir, string directory, string nam
   h->GetBinXYZ(max_bin,xmax,ymax,zmax);
 
   //Add the best track (x0,theta) to the OUTPUT vector
-  Hit2D best_dir;
-  best_dir.Z=h->GetXaxis()->GetBinCenter(xmax); //angle
-  best_dir.XorY=h->GetYaxis()->GetBinCenter(ymax);  //distance
+  Straight best_dir;
+  best_dir.Th = h->GetXaxis()->GetBinCenter(xmax); //angle
+  best_dir.R =  h->GetYaxis()->GetBinCenter(ymax); //distance
 
   if (kDraw) {
     //Plot the transform
@@ -154,7 +170,7 @@ void TrackFinding(Hit2DColl hcoord, Hit2DColl &dir, string directory, string nam
   gStyle->SetNumberContours(divisions);
   
   Hit2DColl newcoord;  //this vector will contain the hits that do not fit the best dir
-  Refine(hcoord,best_dir,newcoord);
+  Refine(hcoord, best_dir, newcoord);
   dir.push_back(best_dir);
   if(vert) newcoord.push_back(hcoord[0]);
 
@@ -166,7 +182,7 @@ void TrackFinding(Hit2DColl hcoord, Hit2DColl &dir, string directory, string nam
 
 //////////////////////////////////////////////////////////////
 
-void PlotHits(Hit2DColl hcoord, Hit2DColl dir, Hit2DColl dirf, string directory, string name, int ev, int _evID, bool kDraw=true){
+void PlotHits(Hit2DColl hcoord, StraightColl dir, StraightColl dirf, string directory, string name, int ev, int _evID, bool kDraw=true){
   
   int n=hcoord.size();
 
@@ -185,8 +201,8 @@ void PlotHits(Hit2DColl hcoord, Hit2DColl dir, Hit2DColl dirf, string directory,
   TF1* f[n_found];
   for(int i=0;i<n_found;i++){
     f[i] = new TF1("f1", "[0]*x+[1]", -30, 30);
-    f[i]->SetParameter(0,tan(dir[i].Z));
-    f[i]->SetParameter(1,dir[i].XorY/cos(dir[i].Z));
+    f[i]->SetParameter(0,tan(dir[i].Th));
+    f[i]->SetParameter(1,dir[i].R/cos(dir[i].Th));
     f[i]->SetLineColor(kBlue+2);
   }
   
@@ -195,8 +211,8 @@ void PlotHits(Hit2DColl hcoord, Hit2DColl dir, Hit2DColl dirf, string directory,
   TF1* ff[n_foundf];
   for(int i=0;i<n_foundf;i++){
     ff[i] = new TF1("f1", "[0]*x+[1]", -30, 30);
-    ff[i]->SetParameter(0,tan(dirf[i].Z));
-    ff[i]->SetParameter(1,dirf[i].XorY/cos(dirf[i].Z));
+    ff[i]->SetParameter(0,tan(dirf[i].Th));
+    ff[i]->SetParameter(1,dirf[i].R/cos(dirf[i].Th));
     ff[i]->SetLineColor(kGreen+2);
   }
 
@@ -284,11 +300,11 @@ void DAQ(int reqEv=-9999) {
 
   //This vectors of vectors will contain the hits' x and y coordinates
   Hit2DColl zx, zy;
-  Hit2DColl traccex, traccey;
+  StraightColl traccex, traccey;
 
   //This vector will contain just the first three hits from the conversion
   Hit2DColl zxf, zyf;
-  Hit2DColl traccexf, tracceyf;
+  StraightColl traccexf, tracceyf;
 
   bool last=false;
 
@@ -341,7 +357,7 @@ void DAQ(int reqEv=-9999) {
 
     int opt_n=3;
     bool vertice=zx[0].Z!=zx[1].Z;
-    if (!vertice) opt_n=6;
+    if (!vertice) opt_n=5;
     //    printf("%d\n", opt_n);
     
     for(int i=0;i<opt_n;i++){
