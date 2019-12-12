@@ -18,8 +18,8 @@
  */
 
 // GGS headers
-#include "utils/GGSSmartLog.h"
-//#include "/home/claudio/Software/GGS/install/include/utils/GGSSmartLog.h"
+//#include "utils/GGSSmartLog.h"
+#include "/home/claudio/Software/GGS/install/include/utils/GGSSmartLog.h"
 /*
   double
   CosAngle(const TVector3& l, const TVector3& r)
@@ -74,10 +74,11 @@ Double_t eDep[nMaxTotalHits]={0.};
 Int_t PDG[nMaxTotalHits]={0};
 Int_t TrID[nMaxTotalHits]={-1};
 Int_t ParID[nMaxTotalHits]={-1};
-// //Double_t xMom[nMaxTotalHits];
-// //Double_t yMom[nMaxTotalHits];
-// //Double_t zMom[nMaxTotalHits];
-// Double_t eeDep[nMaxTotalHits]={0.};
+Double_t xMom[nMaxTotalHits]={-1};
+Double_t yMom[nMaxTotalHits]={-1};
+Double_t zMom[nMaxTotalHits]={-1};
+Double_t eEne[nMaxTotalHits]={-1};
+//Double_t eeDep[nMaxTotalHits]={0.};
 // Double_t peDep[nMaxTotalHits]={0.};
 // int chX[nMaxTotalHits]={0};
 // int chY[nMaxTotalHits]={0}; 
@@ -139,10 +140,11 @@ void CleanEvent(){
   std::fill_n(eDep, nMaxTotalHits, -9999.9);
   std::fill_n(PDG, nMaxTotalHits, 0);
   std::fill_n(TrID, nMaxTotalHits, -1);
-  std::fill_n(ParID, nMaxTotalHits, -1);  
-  // //Double_t xMom[nMaxTotalHits];
-  // //Double_t yMom[nMaxTotalHits];
-  // //Double_t zMom[nMaxTotalHits];
+  std::fill_n(ParID, nMaxTotalHits, -1);
+  std::fill_n(xMom, nMaxTotalHits, 0.);
+  std::fill_n(yMom, nMaxTotalHits, 0.);
+  std::fill_n(zMom, nMaxTotalHits, 0.);
+  std::fill_n(eEne, nMaxTotalHits, 0.);
   // std::fill_n(eeDep, nMaxTotalHits, 0.);
   // std::fill_n(peDep, nMaxTotalHits, 0.);
   // std::fill_n(chX, nMaxTotalHits, 0);
@@ -349,9 +351,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   hitTree->Branch("PDG",&PDG,"PDG[nTotalHits]/I");
   hitTree->Branch("TrID",&TrID,"TrID[nTotalHits]/I");
   hitTree->Branch("ParID",&ParID,"ParID[nTotalHits]/I");
-  // //hitTree->Branch("xMom",&xMom,"xMom[nTotalHits]/D");
-  // //hitTree->Branch("yMom",&yMom,"yMom[nTotalHits]/D");
-  // //hitTree->Branch("zMom",&zMom,"zMom[nTotalHits]/D");
+  hitTree->Branch("xMom",&xMom,"xMom[nTotalHits]/D");
+  hitTree->Branch("yMom",&yMom,"yMom[nTotalHits]/D");
+  hitTree->Branch("zMom",&zMom,"zMom[nTotalHits]/D");
+  hitTree->Branch("eEne",&eEne,"eEne[nTotalHits]/D");
   
   // // electron
   // hitTree->Branch("exCoord",&exCoord,"exCoord[nTotalHits]/D");
@@ -360,9 +363,9 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   // hitTree->Branch("eexxCoord",&eexxCoord,"eexxCoord/D");
   // hitTree->Branch("eexyCoord",&eexyCoord,"eexyCoord/D");
   // hitTree->Branch("eexzCoord",&eexzCoord,"eexzCoord/D");  
-  // hitTree->Branch("exMom",&exMom,"exMom[nTotalHits]/D");
-  // hitTree->Branch("eyMom",&eyMom,"eyMom[nTotalHits]/D");
-  // hitTree->Branch("ezMom",&ezMom,"ezMom[nTotalHits]/D");
+  //hitTree->Branch("exMom",&exMom,"exMom[nTotalHits]/D");
+  //hitTree->Branch("eyMom",&eyMom,"eyMom[nTotalHits]/D");
+  //hitTree->Branch("ezMom",&ezMom,"ezMom[nTotalHits]/D");
   // //  hitTree->Branch("eEne",&eEne,"eEne[nTotalHits]/D");
   // hitTree->Branch("eeDep",&eeDep,"eeDep[nTotalHits]/D");
   
@@ -373,9 +376,9 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   // hitTree->Branch("pexxCoord",&pexxCoord,"pexxCoord/D");
   // hitTree->Branch("pexyCoord",&pexyCoord,"pexyCoord/D");
   // hitTree->Branch("pexzCoord",&pexzCoord,"pexzCoord/D");  
-  // hitTree->Branch("pxMom",&pxMom,"pxMom[nTotalHits]/D");
-  // hitTree->Branch("pyMom",&pyMom,"pyMom[nTotalHits]/D");
-  // hitTree->Branch("pzMom",&pzMom,"pzMom[nTotalHits]/D");
+  //hitTree->Branch("pxMom",&pxMom,"pxMom[nTotalHits]/D");
+  //hitTree->Branch("pyMom",&pyMom,"pyMom[nTotalHits]/D");
+  //hitTree->Branch("pzMom",&pzMom,"pzMom[nTotalHits]/D");
   // //  hitTree->Branch("pEne",&pEne,"pEne[nTotalHits]/D");
   // hitTree->Branch("peDep",&peDep,"peDep[nTotalHits]/D");
     
@@ -546,6 +549,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 	//	  zCoord[nTotalHits-1]=(thisPHit->entrancePoint[2]+thisPHit->exitPoint[2])/2;
 	zCoord[nTotalHits-1]=thisHit->GetVolumePosition()[2];
 	eDep[nTotalHits-1]=1e3*thisPHit->eDep;
+	xMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[0];
+  yMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[1];
+	zMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[2];
+	eEne[nTotalHits-1]=1e3*thisPHit->entranceEnergy;
 	PDG[nTotalHits-1]=thisPHit->particlePdg;
 	TrID[nTotalHits-1]=thisPHit->trackID;
 	ParID[nTotalHits-1]=thisPHit->parentID;
