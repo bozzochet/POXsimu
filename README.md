@@ -13,10 +13,12 @@ Typical commands:
 
 - compilation and installation:
 
+```
 cd <build_path>
 cmake -DCMAKE_INSTALL_PREFIX=<installation_path> <source_path>
 make
 make install
+```
 
 - simulation:
 
@@ -24,20 +26,19 @@ make install
 GGSPenny -g plugins/libTestGeometry.so -gd macros/geo.mac -d macros/vis.mac -ro GGSRootOutput.root > GGSOut.txt
 ```
   
-produces the file GGSRootOutput.root, and the .wrl files of the first 100 events,
-see for example g4_03.wrl for converted gamma  
+produces the file GGSRootOutput.root, and the .wrl files of the first 100 events, see for example g4_03.wrl for converted gamma  
 (the creation of the .wrl event display is suppressed commenting the
 ```
 /vis/open VRML2FILE
 ```
 line in the vis.mac macro)
 
-- conversion from parametric geometry to gdml
+- conversion from parametric geometry to GDML
 ```
 GGSWolowitz -g plugins/libTestGeometry.so -gd macros/geo.mac -t gdml -o plugins/libTestGeometry.gdml
 ```
 
-- conversion from parametric geometry to gdml
+- conversion from parametric geometry to VGM (http://ivana.home.cern.ch/ivana/VGM.html)
 ```
 GGSWolowitz -g plugins/libTestGeometry.so -gd macros/geo.mac -t vgm -o plugins/libTestGeometry.vgm.root
 ```
