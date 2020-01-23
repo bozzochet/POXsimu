@@ -22,6 +22,11 @@
 /Detector/targetLayerShortNo 5			# set target short-layer number
 /Detector/targetLayerLongtNo 0			# set target long-layer number
 /Detector/targetLayerDampeNo 5			# set target dampe-layer number
+#/Detector/targetLayerNo 4			# set target layers number
+#/Detector/targetLayerMiniNo 2			# set target mini-layer number
+#/Detector/targetLayerShortNo 0			# set target short-layer number
+#/Detector/targetLayerLongtNo 0			# set target long-layer number
+#/Detector/targetLayerDampeNo 2			# set target dampe-layer number
 
 /Detector/AMStileX 4.0 cm			# [4.0] set sensor tile X size
 /Detector/AMStileY 7.04 cm			# [7.04] set sensor tile Y size
@@ -59,6 +64,7 @@
 
 /Detector/magVolR 7. cm			# set magnetic volume radius
 /Detector/magVolZ 20. cm			# set magnetic volume Z size
-##/Detector/magFieldVal 1.69604 tesla		# CONST RADIUS OF CURV value
+#/Detector/magFieldVal 1.69604 tesla		# CONST RADIUS OF CURV value
 /Detector/magFieldVal 0.05 tesla		# set magnetic field value
 #/Detector/magFieldVal 0.0 tesla		# set magnetic field value
+#/Detector/magFieldVal 1.0 tesla		# set magnetic field value

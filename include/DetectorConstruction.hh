@@ -17,7 +17,7 @@
 #include "G4SystemOfUnits.hh"
 
 #include "G4UniformMagField.hh"
-//#include "G4MagneticField.hh"
+#include "G4MagneticField.hh"
 
 //#include "DetectorGeometry.hh"
 //#include "DetectorMessenger.hh"
@@ -35,14 +35,14 @@ class DetectorConstruction: public GGSVGeometryConstruction {
 public:
   DetectorConstruction();
   virtual ~DetectorConstruction();
-
+  
   bool ExportParameters();
   const std::string GetVersion();
   
 public:
   virtual G4VPhysicalVolume* Construct();
-  // virtual void ConstructSDandField();
-
+  virtual void ConstructSDandField();
+  
 public:
   void updateGeometry();
   
@@ -50,27 +50,27 @@ public:
   G4VPhysicalVolume* GetVolume() {
     return fPhysicalWorld;
   }
-
-   
+  
 private:
   void DefineMaterials();
-
+  
   G4bool fCheckOverlaps;
-
+  
   G4VPhysicalVolume* fPhysicalWorld;
-
+  
   G4UniformMagField* fMagField;
-
+  G4LogicalVolume* magnetLog;
+  
   //  DetectorMessenger* detMessenger;
   G4GenericMessenger *_messenger;
-
+  
   
   /// GEOMETRY DEFAULT VALUES	
-
-
+  
+  
   G4String fAlign;
-
-
+  
+  
   G4double fLayersOffsetX = 2. * cm;
   G4double fLayersOffsetY = 3.52 * cm;
   

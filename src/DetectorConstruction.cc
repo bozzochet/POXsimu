@@ -5,6 +5,7 @@
  *  Author: Viviana Scherini
  */
 
+#include <unistd.h>
 
 #include "DetectorConstruction.hh"
 // parameterisation
@@ -45,10 +46,9 @@
 #include "G4MagneticField.hh"
 #include "G4FieldManager.hh"
 #include "G4TransportationManager.hh"
-//#include "G4Mag_UsualEqRhs.hh"
-//#include "G4MagIntegratorStepper.hh"
-//#include "G4ChordFinder.hh"
-
+#include "G4Mag_UsualEqRhs.hh"
+#include "G4MagIntegratorStepper.hh"
+#include "G4ChordFinder.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -58,7 +58,7 @@ GeometryPlugin (DetectorConstruction)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 DetectorConstruction::DetectorConstruction() :
-GGSVGeometryConstruction(), fCheckOverlaps(false), fPhysicalWorld(NULL) {
+GGSVGeometryConstruction(), fCheckOverlaps(false), fPhysicalWorld(NULL), magnetLog(NULL) {
   DefineMaterials();
   
   _messenger = new G4GenericMessenger(this, "/Detector/");
@@ -430,7 +430,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   // magnet vol
   
   G4Tubs* magnetMother = new G4Tubs("magnet", 0., fMagVolR, 0.5*fMagVolZ,0., 2*pi);
-  G4LogicalVolume* magnetLog = new G4LogicalVolume(magnetMother, default_mat, "magnet");
+  //  G4LogicalVolume* magnetLog = null; //now is a class member
+  magnetLog = new G4LogicalVolume(magnetMother, default_mat, "magnet");
   
   new G4PVPlacement(0,                     //no rotation
 		    G4ThreeVector(0.,0.,0.),       //at (0,0,0)
@@ -440,19 +441,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 		    false,                 //no boolean operation
 		    0,                     //copy number
 		    fCheckOverlaps);       // checking overlaps
-  
-
-  //  G4FieldManager* fieldMgr
-  //  = G4TransportationManager::GetTransportationManager()
-  //  ->GetFieldManager();
-  //fieldMgr->SetDetectorField(0);
-
-  fMagField = new G4UniformMagField(G4ThreeVector(fMagFieldVal,0.,0.));
-  
-  G4FieldManager* localFieldMgr= new G4FieldManager(); 
-  localFieldMgr->SetDetectorField(fMagField);
-  localFieldMgr->CreateChordFinder(fMagField);
-  magnetLog->SetFieldManager(localFieldMgr,false);
 
   //                                        
   // Visualization attributes
@@ -497,22 +485,35 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-// void DetectorConstruction::ConstructSDandField() {
-//G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
+void DetectorConstruction::ConstructSDandField() {
+  G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
+  
+  // declare crystal as a MultiFunctionalDetector scorer
+  //
+  /*
+    G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
+    G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
+    cryst->RegisterPrimitive(primitiv1);
+    SetSensitiveDetector("Crystal",cryst);
+  */
+  //G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
+  //G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
+  //cryst->RegisterPrimitive(primitiv1);
+  //SetSensitiveDetector("Crystal", cryst);
+  
+  //  G4FieldManager* fieldMgr
+  //  = G4TransportationManager::GetTransportationManager()
+  //  ->GetFieldManager();
+  //fieldMgr->SetDetectorField(0);
+  
+  fMagField = new G4UniformMagField(G4ThreeVector(fMagFieldVal,0.,0.));
+  
+  G4FieldManager* localFieldMgr= new G4FieldManager(); 
+  localFieldMgr->SetDetectorField(fMagField);
+  localFieldMgr->CreateChordFinder(fMagField);
+  magnetLog->SetFieldManager(localFieldMgr,false);
 
-// declare crystal as a MultiFunctionalDetector scorer
-//
-/*
-  G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
-  G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
-  cryst->RegisterPrimitive(primitiv1);
-  SetSensitiveDetector("Crystal",cryst);
-*/
-//G4MultiFunctionalDetector* cryst = new G4MultiFunctionalDetector("crystal");
-//G4VPrimitiveScorer* primitiv1 = new G4PSEnergyDeposit("edep");
-//cryst->RegisterPrimitive(primitiv1);
-//SetSensitiveDetector("Crystal", cryst);
-// }
+}
 
 void DetectorConstruction::updateGeometry() {
   G4RunManager::GetRunManager()->DefineWorldVolume(Construct());
