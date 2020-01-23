@@ -11,21 +11,48 @@ Ingredients:
 
 Typical commands:
 
-- simuation
+- compilation and installation:
+
+cd <build_path>
+cmake -DCMAKE_INSTALL_PREFIX=<installation_path> <source_path>
+make
+make install
+
+- simulation:
 
 ```
-GGSPenny -g plugins/libTestGeometry.so -gd geo.mac -d vis.mac -ro GGSRootOutput.root > GGSOut.txt
+GGSPenny -g plugins/libTestGeometry.so -gd macros/geo.mac -d macros/vis.mac -ro GGSRootOutput.root > GGSOut.txt
 ```
   
-produces the file GGSRootOutput.root, and the .wrl files of the first 100 events see for example g4_03.wrl for conferted gamma  
+produces the file GGSRootOutput.root, and the .wrl files of the first 100 events,
+see for example g4_03.wrl for converted gamma  
 (the creation of the .wrl event display is suppressed commenting the
 ```
 /vis/open VRML2FILE
 ```
 line in the vis.mac macro)
 
-- conversion from GGS output to plain ROOT file
-Then, to analyze the GGS output:
+- conversion from parametric geometry to gdml
+```
+GGSWolowitz -g plugins/libTestGeometry.so -gd macros/geo.mac -t gdml -o plugins/libTestGeometry.gdml
+```
+
+- conversion from parametric geometry to gdml
+```
+GGSWolowitz -g plugins/libTestGeometry.so -gd macros/geo.mac -t vgm -o plugins/libTestGeometry.vgm.root
+```
+
+- opening of the geometry display:
+```
+GGSLeonard -g plugins/libTestGeometry.vgm.root
+```
+
+- opening of the event display:
+```
+GGSLeonard -g plugins/libTestGeometry.vgm.root -i GGSRootOutput.root
+```
+
+- conversion from GGS output to plain ROOT file:
 ```
 root [0] .L Analysis/Analysis.C 
 root [1] SimpleAnalysis("GGSRootOutput.root", "anaOut.root")
