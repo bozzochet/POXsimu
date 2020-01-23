@@ -2,13 +2,17 @@
 
 GGS Simulation of POX prototype detector
 
-vis.mac:  
--> gamma 100 MeV   
--> 10000 events  
-geo.mac:  
--> 10+4 layers  
--> thickness 300 um  
-  
+Ingredients:
+
+- macros/vis.mac: datacard, a la Geant, to set the simulation parameters 
+- macros/geo.mac: datacard for the parametric geometry
+- {src,include}/DetectorConstruction.{cc,hh}: definition, a la Geant, of the geometry 
+- Analysis/Analysis.C: ROOT macro to read the GGS output file
+
+Typical commands:
+
+- simuation
+
 ```
 GGSPenny -g plugins/libTestGeometry.so -gd geo.mac -d vis.mac -ro GGSRootOutput.root > GGSOut.txt
 ```
@@ -20,6 +24,7 @@ produces the file GGSRootOutput.root, and the .wrl files of the first 100 events
 ```
 line in the vis.mac macro)
 
+- conversion from GGS output to plain ROOT file
 Then, to analyze the GGS output:
 ```
 root [0] .L Analysis/Analysis.C 
