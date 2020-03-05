@@ -18,8 +18,8 @@
  */
 
 // GGS headers
-//#include "utils/GGSSmartLog.h"
-#include "/home/claudio/Software/GGS/install/include/utils/GGSSmartLog.h"
+#include "utils/GGSSmartLog.h"
+//#include "/Users/claudio/App/GGS/install/include/utils/GGSSmartLog.h"
 /*
   double
   CosAngle(const TVector3& l, const TVector3& r)
@@ -56,17 +56,18 @@ int nInt = 0;
 int iEv = 0;
 int nHits = 0;//number of TIntHits (essentially the number of firing volumes)
 int nTotalHits = 0;//total number of TPathHits (~ nHits*<nPartHits>)
-// int ppHit = -1;
+int ppHit = -1;
 // double eLastZ = -1.;
 // double pLastZ = -1.;
 
 // Int_t hPart[nMaxHits]={0};
-// Int_t hVol[nMaxHits]={0};
-// Double_t hVolZ[nMaxHits]={0.};
+Int_t hVol[nMaxTotalHits]={0};
+Double_t hVolZ[nMaxTotalHits]={0.};
 
 // //  Double_t zPath[nMaxTotalHits];
-//Double_t gEne=-9999; 
-// Double_t zPath=-9999;
+Double_t gEne=-9999; 
+Double_t zPath=-9999;
+
 Double_t xCoord[nMaxTotalHits]={0.};
 Double_t yCoord[nMaxTotalHits]={0.};
 Double_t zCoord[nMaxTotalHits]={0.};
@@ -78,7 +79,8 @@ Double_t xMom[nMaxTotalHits]={-1};
 Double_t yMom[nMaxTotalHits]={-1};
 Double_t zMom[nMaxTotalHits]={-1};
 Double_t eEne[nMaxTotalHits]={-1};
-//Double_t eeDep[nMaxTotalHits]={0.};
+
+Double_t eeDep[nMaxTotalHits]={0.};
 // Double_t peDep[nMaxTotalHits]={0.};
 // int chX[nMaxTotalHits]={0};
 // int chY[nMaxTotalHits]={0}; 
@@ -97,8 +99,8 @@ Double_t eEne[nMaxTotalHits]={-1};
 // Double_t ezMom[nMaxTotalHits]={0.};
 // //Double_t eEne[nMaxTotalHits];
 // Double_t eEne=-9999.;
-// int echX[nMaxTotalHits]={0};
-// int echY[nMaxTotalHits]={0}; 
+int echX[nMaxTotalHits]={0};
+int echY[nMaxTotalHits]={0}; 
 
 // Double_t pxCoord[nMaxTotalHits]={0.};
 // Double_t pyCoord[nMaxTotalHits]={0.};
@@ -123,16 +125,16 @@ void CleanEvent(){
   //  iEv = 0;//not initialize this!!!
   nHits = 0;
   nTotalHits = 0;
-  // ppHit = -1;
+  ppHit = -1;
   // eLastZ = -1.;
   // pLastZ = -1.;
 
   // std::fill_n(hPart, nMaxHits, 0);
-  // std::fill_n(hVol, nMaxHits, 0);
-  // std::fill_n(hVolZ, nMaxHits, 0.);
+  std::fill_n(hVol, nMaxHits, 0);
+  std::fill_n(hVolZ, nMaxHits, 0.);
   
   // //  Double_t zPath[nMaxTotalHits];
-  //  gEne=-9999; 
+  gEne=-9999; 
   // zPath=-9999;
   std::fill_n(xCoord, nMaxTotalHits, -9999.9);
   std::fill_n(yCoord, nMaxTotalHits, -9999.9);
@@ -145,7 +147,8 @@ void CleanEvent(){
   std::fill_n(yMom, nMaxTotalHits, 0.);
   std::fill_n(zMom, nMaxTotalHits, 0.);
   std::fill_n(eEne, nMaxTotalHits, 0.);
-  // std::fill_n(eeDep, nMaxTotalHits, 0.);
+
+  std::fill_n(eeDep, nMaxTotalHits, 0.);
   // std::fill_n(peDep, nMaxTotalHits, 0.);
   // std::fill_n(chX, nMaxTotalHits, 0);
   // std::fill_n(chY, nMaxTotalHits, 0);
@@ -164,8 +167,8 @@ void CleanEvent(){
   // std::fill_n(ezMom, nMaxTotalHits, 0.);
   // //Double_t eEne[nMaxTotalHits];
   // eEne=-9999.;
-  // std::fill_n(echX, nMaxTotalHits, 0);
-  // std::fill_n(echY, nMaxTotalHits, 0);
+  std::fill_n(echX, nMaxTotalHits, 0);
+  std::fill_n(echY, nMaxTotalHits, 0);
 
   // std::fill_n(pxCoord, nMaxTotalHits, 0.);
   // std::fill_n(pyCoord, nMaxTotalHits, 0.);
@@ -212,6 +215,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     std::cout << "*** No simulation information are available\n";
   }  
   const GGSTGeoParams *geoParams = reader.GetGeoParams();
+  /*
   if (geoParams) {
     std::cout << "*** Geometry parameters:\n";
     std::cout << "Target Layers Number:    " << geoParams->GetIntGeoParam("targetLayerNo") << "\n";
@@ -234,7 +238,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     std::cout << "Mag Field Value:    " << geoParams->GetRealGeoParam("magFieldVal") << " Tesla\n";
     std::cout << "Mag Field Z:    " << geoParams->GetRealGeoParam("magVolZ") << " cm\n";
   }
-  std::cout << std::endl;
+  std::cout << std::endl;*/
 
   bool DB=false;  
   // GEOMETRYPARS TO GET FROM READER
@@ -260,10 +264,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 
   // Create and retrieve the hits sub-reader
   GGSTHitsReader *hReader = reader.GetReader<GGSTHitsReader>();
-  // Set which hit detectors are to be read
-  // hReader->SetDetector("siLayerMiniLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
-  // hReader->SetDetector("siLayerShortLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
-  // hReader->SetDetector("siLayerLongLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  //Set which hit detectors are to be read
+  //hReader->SetDetector("siLayerMiniLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  //hReader->SetDetector("siLayerShortLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  //hReader->SetDetector("siLayerLongLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   hReader->SetDetector("siAMSTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   hReader->SetDetector("siDAMPETileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   hReader->SetDetector("siTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
@@ -278,7 +282,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 
 
   // Prepare the histograms
-  gStyle->SetOptFit(1);
+  // gStyle->SetOptFit(1);
   
   //  TH1F *nHitHisto = new TH1F("nHitHisto", "NHits;NHit; Counts", 30, 0, 30); // nhits histo
 
@@ -322,21 +326,22 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   runTree->Branch("nLayers",&nLayers,"nLayers/I");
   runTree->Branch("xyAlign",&xyAlign,"xyAlign[nLayers]/I");
   runTree->Branch("nEvts",&nEvts,"nEvts/I");
-  //  runTree->Branch("gEne",&gEne,"gEne/D");
+  runTree->Branch("gEne",&gEne,"gEne/D");
   
   TTree *hitTree =  new TTree("hitTree","tree of layer hits");
 
-  // hit
-  // hitTree->Branch("hPart",&hPart,"hPart[nHits]/I");
-  // hitTree->Branch("hVol",&hVol,"hVol[nHits]/I");  
-  // hitTree->Branch("hVolZ",&hVolZ,"hVolZ[nHits]/D");  
   
   hitTree->Branch("evID",&iEv,"evID/I");
   hitTree->Branch("nHits",&nHits,"nHits/I");
   hitTree->Branch("nTotalHits",&nTotalHits,"nTotalHits/I");
-  // hitTree->Branch("ppHit",&ppHit,"ppHit/I");
+  hitTree->Branch("ppHit",&ppHit,"ppHit/I");
   // hitTree->Branch("eLastZ",&eLastZ,"eLastZ/D");
   // hitTree->Branch("pLastZ",&pLastZ,"pLastZ/D");
+
+  // hit
+  // hitTree->Branch("hPart",&hPart,"hPart[nHits]/I");
+  hitTree->Branch("hVol",&hVol,"hVol[nTotalHits]/I");  
+  hitTree->Branch("hVolZ",&hVolZ,"hVolZ[nTotalHits]/D");  
 
   // primary gamma and pprod energies
   // //  hitTree->Branch("zPath",&zPath,"zPath[nTotalHits]/D");
@@ -367,7 +372,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   //hitTree->Branch("eyMom",&eyMom,"eyMom[nTotalHits]/D");
   //hitTree->Branch("ezMom",&ezMom,"ezMom[nTotalHits]/D");
   // //  hitTree->Branch("eEne",&eEne,"eEne[nTotalHits]/D");
-  // hitTree->Branch("eeDep",&eeDep,"eeDep[nTotalHits]/D");
+  hitTree->Branch("eeDep",&eeDep,"eeDep[nTotalHits]/D");
   
   // // positron
   // hitTree->Branch("pxCoord",&pxCoord,"pxCoord[nTotalHits]/D");
@@ -384,8 +389,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     
   // hitTree->Branch("chX",&chX,"chX[nTotalHits]/I");
   // hitTree->Branch("chY",&chY,"chY[nTotalHits]/I");
-  // hitTree->Branch("echX",&echX,"echX[nTotalHits]/I");
-  // hitTree->Branch("echY",&echY,"echY[nTotalHits]/I");
+  hitTree->Branch("echX",&echX,"echX[nTotalHits]/I");
+  hitTree->Branch("echY",&echY,"echY[nTotalHits]/I");
   // hitTree->Branch("pchX",&pchX,"pchX[nTotalHits]/I");
   // hitTree->Branch("pchY",&pchY,"pchY[nTotalHits]/I");
 
@@ -427,24 +432,24 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     {
       int _nHits = hReader->GetNHits("siTileLog"); //Number of hit siLayers for current event
       for (int iHit = 0; iHit < _nHits; iHit++) {
-	thisHit = hReader->GetHit("siTileLog", iHit);
-	vTIntHit.push_back(thisHit);
+	      thisHit = hReader->GetHit("siTileLog", iHit);
+	      vTIntHit.push_back(thisHit);
       }
       nHits += _nHits;
     }
     {
       int _nHits = hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
       for (int iHit = 0; iHit < _nHits; iHit++) {
-	thisHit = hReader->GetHit("siAMSTileLog", iHit);
-	vTIntHit.push_back(thisHit);
+	      thisHit = hReader->GetHit("siAMSTileLog", iHit);
+	      vTIntHit.push_back(thisHit);
       }
       nHits += _nHits;
     }
     {
       int _nHits = hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
       for (int iHit = 0; iHit < _nHits; iHit++) {
-	thisHit = hReader->GetHit("siDAMPETileLog", iHit);
-	vTIntHit.push_back(thisHit);
+      	thisHit = hReader->GetHit("siDAMPETileLog", iHit);
+	      vTIntHit.push_back(thisHit);
       }
       nHits += _nHits;
     }
@@ -456,14 +461,14 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     // // efficiency calc
     bool pprod=false; 
 
-    // // true Y bending
-    // //double mom=1.;  // mom in GV (not geant4 ene
-    // if (hReader->GetHit("siTileLog",0)) {
-    //   mom=hReader->GetHit("siTileLog",0)->GetPartHit(0)->entranceMomentum[2];
-    // }
-    // else {
-    //   mom=0.0;
-    // }
+    // true Y bending
+    //double mom=1.;  // mom in GV (not geant4 ene)
+    if (hReader->GetHit("siTileLog",0)) {
+      mom=hReader->GetHit("siTileLog",0)->GetPartHit(0)->entranceMomentum[2];
+    }
+    else {
+      mom=0.0;
+    }
     
     // //double magf=1.; // mag field [tesla]
     // double magf=geoParams->GetRealGeoParam("magFieldVal");
@@ -474,12 +479,12 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     // double thcenter=0.;
     // double thtrueV=0.;
     
-    // if(magf){
-    //   ro=mom/magf/0.3;  // radius of curvature [m]
-    //   dYtrue = ro*(1-sqrt(1-(magz/ro)*(magz/ro)));
-    //   thtrue = atan2(dYtrue,magz);
-    //   thcenter = atan2(magz,(ro-dYtrue));
-    // }
+    //if(magf){
+    //  ro=mom/magf/0.3;  // radius of curvature [m]
+    //  dYtrue = ro*(1-sqrt(1-(magz/ro)*(magz/ro)));
+    //  thtrue = atan2(dYtrue,magz);
+    //  thcenter = atan2(magz,(ro-dYtrue));
+    //}
  
     // TVector3 vzeta(0.,0.,mom);
     // //    TVector3 vtrue(0.,dYtrue,mom);
@@ -503,117 +508,57 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
       int nPHits= thisHit->GetNPartHits();
       
       if(nPHits>=2||pprod) {
-	std::cout<<"******* HIT: "<< iHit <<" --->>>PARTHITS: "<<nPHits<<" detind: "<<hReader->GetDetectorIndex("siTileLog")<<" "<<thisHit->GetVolumeName()<<" "<<thisHit->GetVolumeID()<<" pos:"<<thisHit->GetVolumePosition()[2]<<std::endl;
+	      std::cout<<"******* HIT: "<< iHit <<" --->>>PARTHITS: "<<nPHits<<" detind: "<<hReader->GetDetectorIndex("siTileLog")<<" "<<thisHit->GetVolumeName()<<" "<<thisHit->GetVolumeID()<<" pos:"<<thisHit->GetVolumePosition()[2]<<std::endl;
       }
 
-      // hVol[iHit]=thisHit->GetVolumeID();
-      // hVolZ[iHit]=thisHit->GetVolumePosition()[2];
+      //      hVol[iHit]=thisHit->GetVolumeID();
+      //      hVolZ[iHit]=thisHit->GetVolumePosition()[2];
       
       if (nPHits>=3) {
-	std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" --->>>3INT"<< std::endl;
-	if (nPHits>=4) {
-	  printf("Oh cazzo... EVT=%d, HIT=%d, nPartHits=%d\n", iEv, iHit, nPHits);
-	}
+	      std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" --->>>3INT"<< std::endl;
       }
 
-      // double zp=-9999;
-      // double ex=-9999;
-      // double ey=-9999;
-      // double ez=-9999;
-
       for (int iPHit =0; iPHit<nPHits; iPHit++){//queste sono le vere hit particella per particella
-	nTotalHits++;
-	
-	thisPHit  = thisHit->GetPartHit(iPHit);
+        
+        thisPHit = thisHit->GetPartHit(iPHit);
 
-	if (nPHits>=2||pprod)
-	  thisPHit->DumpHit();
-	
-	// if(thisPHit->parentID==0&&thisPHit->particlePdg==22){ /// primary particle hit values 
-	//   //zPath[nTotalHits-1]=thisPHit->pathLength;
-	//   //xCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
-	//   //yCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
-	//   //zCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
-	//   //xMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
-	//   //yMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
-	//   //zMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
-	//   chX[nTotalHits-1]=int((thisPHit->entrancePoint[0]+msidex/2.)/pitch);
-	//   chY[nTotalHits-1]=int((thisPHit->entrancePoint[1]+msidey/2.)/pitch);
-	//   //	  ePDepHisto->Fill(1e3*thisPHit->eDep);
-	//   zp=thisPHit->pathLength;
-	// }  //// primary particle values
+        if (nPHits>=2||pprod)
+          thisPHit->DumpHit();
+        
+        if(thisPHit->parentID==0 && thisPHit->particlePdg==22&&gEne<0){ /// primary particle hit values 
+          gEne=1e3*thisPHit->entranceEnergy;
+        }
 
-	//	if(thisPHit->particlePdg==11||thisPHit->particlePdg==-11){  /// secondary particles (electron and positron)
-	xCoord[nTotalHits-1]=(thisPHit->entrancePoint[0]+thisPHit->exitPoint[0])/2;
-	yCoord[nTotalHits-1]=(thisPHit->entrancePoint[1]+thisPHit->exitPoint[1])/2;
-	//	  zCoord[nTotalHits-1]=(thisPHit->entrancePoint[2]+thisPHit->exitPoint[2])/2;
-	zCoord[nTotalHits-1]=thisHit->GetVolumePosition()[2];
-	eDep[nTotalHits-1]=1e3*thisPHit->eDep;
-	xMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[0];
-  yMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[1];
-	zMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[2];
-	eEne[nTotalHits-1]=1e3*thisPHit->entranceEnergy;
-	PDG[nTotalHits-1]=thisPHit->particlePdg;
-	TrID[nTotalHits-1]=thisPHit->trackID;
-	ParID[nTotalHits-1]=thisPHit->parentID;
-	//	}
+      	if(thisPHit->particlePdg!=22){  /// secondary particles (electron and positron)
+          nTotalHits++;
 
-	// if(thisPHit->parentID==1&&thisPHit->particlePdg==11){ /// electron
-	//   //eEne[nTotalHits-1]=thisPHit->entranceEnergy;
-	//   exCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
-	//   eyCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
-	//   ezCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
-	//   //eexxCoord[nTotalHits-1]=thisPHit->exitPoint[0];
-	//   //eexyCoord[nTotalHits-1]=thisPHit->exitPoint[1];
-	//   //eexzCoord[nTotalHits-1]=thisPHit->exitPoint[2];
-	//   ex=thisPHit->exitPoint[0];
-	//   ey=thisPHit->exitPoint[1];
-	//   ez=thisPHit->exitPoint[2];
-	//   eEne=thisPHit->entranceEnergy;
-	//   exMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
-	//   eyMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
-	//   ezMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
-	//   eeDep[nTotalHits-1]=1e3*thisPHit->eDep;
-	//   echX[nTotalHits-1]=int((exCoord[nTotalHits-1]+msidex/2.)/pitch);
-	//   echY[nTotalHits-1]=int((eyCoord[nTotalHits-1]+msidey/2.)/pitch);
-	//   eno++;
-	//   hPart[iHit] +=1;
-	// }  //// electron values
+          hVol[nTotalHits-1]=thisHit->GetVolumeID();
+          hVolZ[nTotalHits-1]=thisHit->GetVolumePosition()[2];
+          
+          xCoord[nTotalHits-1]=(thisPHit->entrancePoint[0]+thisPHit->exitPoint[0])/2;
+          yCoord[nTotalHits-1]=(thisPHit->entrancePoint[1]+thisPHit->exitPoint[1])/2;
+          //	  zCoord[nTotalHits-1]=(thisPHit->entrancePoint[2]+thisPHit->exitPoint[2])/2;
+          zCoord[nTotalHits-1]=thisHit->GetVolumePosition()[2];
+          eDep[nTotalHits-1]=1e3*thisPHit->eDep;
+          xMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[0];
+          yMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[1];
+          zMom[nTotalHits-1]=1e3*thisPHit->entranceMomentum[2];
+          eEne[nTotalHits-1]=1e3*thisPHit->entranceEnergy;
+          PDG[nTotalHits-1]=thisPHit->particlePdg;
+          TrID[nTotalHits-1]=thisPHit->trackID;
+          ParID[nTotalHits-1]=thisPHit->parentID;
 
-	if(thisPHit->parentID==1&&thisPHit->particlePdg==-11){ /// positron
-	//   //pEne[nTotalHits-1]=thisPHit->entranceEnergy;
-	//   pxCoord[nTotalHits-1]=thisPHit->entrancePoint[0];
-	//   pyCoord[nTotalHits-1]=thisPHit->entrancePoint[1];
-	//   pzCoord[nTotalHits-1]=thisPHit->entrancePoint[2];
-	//   //pexxCoord[nTotalHits-1]=thisPHit->exitPoint[0];
-	//   //pexyCoord[nTotalHits-1]=thisPHit->exitPoint[1];
-	//   //pexzCoord[nTotalHits-1]=thisPHit->exitPoint[2];
-	//   pxMom[nTotalHits-1]=thisPHit->entranceMomentum[0];
-	//   pyMom[nTotalHits-1]=thisPHit->entranceMomentum[1];
-	//   pzMom[nTotalHits-1]=thisPHit->entranceMomentum[2];
-	//   peDep[nTotalHits-1]=1e3*thisPHit->eDep;
-	//   pchX[nTotalHits-1]=int((pxCoord[nTotalHits-1]+msidex/2.)/pitch);
-	//   pchY[nTotalHits-1]=int((pyCoord[nTotalHits-1]+msidey/2.)/pitch);
-	//   pno++;
-	//   hPart[iHit] +=2;
-	//   if(DB)
-	//     std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" --->>> PPROD POSITRON PHIT: "<< iPHit<<" eno "<<eno<<" pno "<<pno<< std::endl;	  
+          eeDep[nTotalHits-1]=1e3*thisPHit->eDep;
+          echX[nTotalHits-1]=int((xCoord[nTotalHits-1]+msidex/2.)/pitch);
+          echY[nTotalHits-1]=int((yCoord[nTotalHits-1]+msidey/2.)/pitch);
 
-	  if (!pprod){
-	    pprod=true;
-	//     ppHit=iHit;
-	//     pexxCoord=thisPHit->exitPoint[0];
-	//     pexyCoord=thisPHit->exitPoint[1];
-	//     pexzCoord=thisPHit->exitPoint[2];
-	//     pEne=thisPHit->entranceEnergy;
-
-	//     gEne=mom;
-	//     zPath=zp;
-	//     eexxCoord=ex;
-	//     eexyCoord=ey;
-	//     eexzCoord=ez;
-	  }	  
-	} //// positron values
+          if(thisPHit->parentID==1&&thisPHit->particlePdg==-11){ /// positron
+            if (!pprod){
+              pprod=true;
+              ppHit=iHit;
+            }
+          }
+        }
 
       } // loop on particle hits
 
