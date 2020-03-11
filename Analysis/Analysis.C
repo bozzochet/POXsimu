@@ -80,43 +80,9 @@ Double_t yMom[nMaxTotalHits]={-1};
 Double_t zMom[nMaxTotalHits]={-1};
 Double_t eEne[nMaxTotalHits]={-1};
 
-Double_t eeDep[nMaxTotalHits]={0.};
-// Double_t peDep[nMaxTotalHits]={0.};
-// int chX[nMaxTotalHits]={0};
-// int chY[nMaxTotalHits]={0}; 
-    
-// Double_t exCoord[nMaxTotalHits]={0.};
-// Double_t eyCoord[nMaxTotalHits]={0.};
-// Double_t ezCoord[nMaxTotalHits]={0.};
-// Double_t eexxCoord=-9999.;
-// Double_t eexyCoord=-9999.;
-// Double_t eexzCoord=-9999.;
-// //  Double_t eexxCoord[nMaxTotalHits];
-// //  Double_t eexyCoord[nMaxTotalHits];
-// //  Double_t eexzCoord[nMaxTotalHits];  
-// Double_t exMom[nMaxTotalHits]={0.};
-// Double_t eyMom[nMaxTotalHits]={0.};
-// Double_t ezMom[nMaxTotalHits]={0.};
-// //Double_t eEne[nMaxTotalHits];
-// Double_t eEne=-9999.;
-int echX[nMaxTotalHits]={0};
-int echY[nMaxTotalHits]={0}; 
+Int_t chX[nMaxTotalHits]={0};
+Int_t chY[nMaxTotalHits]={0}; 
 
-// Double_t pxCoord[nMaxTotalHits]={0.};
-// Double_t pyCoord[nMaxTotalHits]={0.};
-// Double_t pzCoord[nMaxTotalHits]={0.};
-// //  Double_t pexxCoord[nMaxTotalHits];
-// //  Double_t pexyCoord[nMaxTotalHits];
-// //  Double_t pexzCoord[nMaxTotalHits];
-// Double_t pexxCoord=-9999.;
-// Double_t pexyCoord=-9999.;
-// Double_t pexzCoord=-9999.;
-// Double_t pxMom[nMaxTotalHits]={0.};
-// Double_t pyMom[nMaxTotalHits]={0.};
-// Double_t pzMom[nMaxTotalHits]={0.};
-// Double_t pEne=-9999.;
-// int pchX[nMaxTotalHits]={0};
-// int pchY[nMaxTotalHits]={0};
 //----------------------------------
 
 void CleanEvent(){
@@ -148,48 +114,13 @@ void CleanEvent(){
   std::fill_n(zMom, nMaxTotalHits, 0.);
   std::fill_n(eEne, nMaxTotalHits, 0.);
 
-  std::fill_n(eeDep, nMaxTotalHits, 0.);
-  // std::fill_n(peDep, nMaxTotalHits, 0.);
-  // std::fill_n(chX, nMaxTotalHits, 0);
-  // std::fill_n(chY, nMaxTotalHits, 0);
-      
-  // std::fill_n(exCoord, nMaxTotalHits, 0.);
-  // std::fill_n(eyCoord, nMaxTotalHits, 0.);
-  // std::fill_n(ezCoord, nMaxTotalHits, 0.);
-  // eexxCoord=-9999.;
-  // eexyCoord=-9999.;
-  // eexzCoord=-9999.;
-  // //  Double_t eexxCoord[nMaxTotalHits];
-  // //  Double_t eexyCoord[nMaxTotalHits];
-  // //  Double_t eexzCoord[nMaxTotalHits];  
-  // std::fill_n(exMom, nMaxTotalHits, 0.);
-  // std::fill_n(eyMom, nMaxTotalHits, 0.);
-  // std::fill_n(ezMom, nMaxTotalHits, 0.);
-  // //Double_t eEne[nMaxTotalHits];
-  // eEne=-9999.;
-  std::fill_n(echX, nMaxTotalHits, 0);
-  std::fill_n(echY, nMaxTotalHits, 0);
-
-  // std::fill_n(pxCoord, nMaxTotalHits, 0.);
-  // std::fill_n(pyCoord, nMaxTotalHits, 0.);
-  // std::fill_n(pzCoord, nMaxTotalHits, 0.);
-  // //  Double_t pexxCoord[nMaxTotalHits];
-  // //  Double_t pexyCoord[nMaxTotalHits];
-  // //  Double_t pexzCoord[nMaxTotalHits];
-  // pexxCoord=-9999.;
-  // pexyCoord=-9999.;
-  // pexzCoord=-9999.;
-  // std::fill_n(pxMom, nMaxTotalHits, 0.);
-  // std::fill_n(pyMom, nMaxTotalHits, 0.);
-  // std::fill_n(pzMom, nMaxTotalHits, 0.);
-  // pEne=-9999.;
-  // std::fill_n(pchX, nMaxTotalHits, 0);
-  // std::fill_n(pchY, nMaxTotalHits, 0);
+  std::fill_n(chX, nMaxTotalHits, 0);
+  std::fill_n(chY, nMaxTotalHits, 0);
 
   return;
 }
 
-void SimpleAnalysis(TString inputFileName, TString outputFileName) {
+void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=0) {
   static const std::string routineName("simpleanalysis");
 
   GGSSmartLog::verboseLevel = GGSSmartLog::INFO; // Print only INFO messages or more important
@@ -268,8 +199,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   //hReader->SetDetector("siLayerMiniLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   //hReader->SetDetector("siLayerShortLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   //hReader->SetDetector("siLayerLongLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
-  hReader->SetDetector("siAMSTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
-  hReader->SetDetector("siDAMPETileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  if(!full50){
+    hReader->SetDetector("siAMSTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+    hReader->SetDetector("siDAMPETileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
+  }
   hReader->SetDetector("siTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
 
   //   hReader->SetDetector("siStripLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
@@ -305,19 +238,18 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
 
 
   int nLayers = geoParams->GetIntGeoParam("targetLayerNo")+geoParams->GetIntGeoParam("smLayerNo");
-
-
-  Int_t xyAlign[nLayers];
-  string sAlign=geoParams->GetStringGeoParam("layerAlignment");
-  for (int isn=0; isn<nLayers; isn++) {
-    xyAlign[isn]=sAlign[isn]-'0';
-    //    printf("xyAlign[%d]=%d\n", isn, xyAlign[isn]);
-  }
-  /*
   // manual alignment for older files
-  Int_t xyAlign[14]={0,1,0,1,0,1,0,1,0,1,1,1,1,1};
+  Int_t xyAlign[20]={0,1,0,1,0,1,0,1,0,1,1,1,1,1,0,0,0,0,0,0};
   //Int_t xyAlign[24]={0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1};
-  */
+
+  if(!full50){
+  //  Int_t xyAlign[nLayers];
+    string sAlign=geoParams->GetStringGeoParam("layerAlignment");
+    for (int isn=0; isn<nLayers; isn++) {
+      xyAlign[isn]=sAlign[isn]-'0';
+      //    printf("xyAlign[%d]=%d\n", isn, xyAlign[isn]);
+    }
+  }
   int nEvts = 0;
   
   //------------------------------------------------------
@@ -342,12 +274,6 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   // hitTree->Branch("hPart",&hPart,"hPart[nHits]/I");
   hitTree->Branch("hVol",&hVol,"hVol[nTotalHits]/I");  
   hitTree->Branch("hVolZ",&hVolZ,"hVolZ[nTotalHits]/D");  
-
-  // primary gamma and pprod energies
-  // //  hitTree->Branch("zPath",&zPath,"zPath[nTotalHits]/D");
-  // hitTree->Branch("zPath",&zPath,"zPath/D");  
-  // hitTree->Branch("eEne",&eEne,"eEne/D");
-  // hitTree->Branch("pEne",&pEne,"pEne/D");
   
   hitTree->Branch("xCoord",&xCoord,"xCoord[nTotalHits]/D");
   hitTree->Branch("yCoord",&yCoord,"yCoord[nTotalHits]/D");
@@ -360,39 +286,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
   hitTree->Branch("yMom",&yMom,"yMom[nTotalHits]/D");
   hitTree->Branch("zMom",&zMom,"zMom[nTotalHits]/D");
   hitTree->Branch("eEne",&eEne,"eEne[nTotalHits]/D");
-  
-  // // electron
-  // hitTree->Branch("exCoord",&exCoord,"exCoord[nTotalHits]/D");
-  // hitTree->Branch("eyCoord",&eyCoord,"eyCoord[nTotalHits]/D");
-  // hitTree->Branch("ezCoord",&ezCoord,"ezCoord[nTotalHits]/D");  
-  // hitTree->Branch("eexxCoord",&eexxCoord,"eexxCoord/D");
-  // hitTree->Branch("eexyCoord",&eexyCoord,"eexyCoord/D");
-  // hitTree->Branch("eexzCoord",&eexzCoord,"eexzCoord/D");  
-  //hitTree->Branch("exMom",&exMom,"exMom[nTotalHits]/D");
-  //hitTree->Branch("eyMom",&eyMom,"eyMom[nTotalHits]/D");
-  //hitTree->Branch("ezMom",&ezMom,"ezMom[nTotalHits]/D");
-  // //  hitTree->Branch("eEne",&eEne,"eEne[nTotalHits]/D");
-  hitTree->Branch("eeDep",&eeDep,"eeDep[nTotalHits]/D");
-  
-  // // positron
-  // hitTree->Branch("pxCoord",&pxCoord,"pxCoord[nTotalHits]/D");
-  // hitTree->Branch("pyCoord",&pyCoord,"pyCoord[nTotalHits]/D");
-  // hitTree->Branch("pzCoord",&pzCoord,"pzCoord[nTotalHits]/D");
-  // hitTree->Branch("pexxCoord",&pexxCoord,"pexxCoord/D");
-  // hitTree->Branch("pexyCoord",&pexyCoord,"pexyCoord/D");
-  // hitTree->Branch("pexzCoord",&pexzCoord,"pexzCoord/D");  
-  //hitTree->Branch("pxMom",&pxMom,"pxMom[nTotalHits]/D");
-  //hitTree->Branch("pyMom",&pyMom,"pyMom[nTotalHits]/D");
-  //hitTree->Branch("pzMom",&pzMom,"pzMom[nTotalHits]/D");
-  // //  hitTree->Branch("pEne",&pEne,"pEne[nTotalHits]/D");
-  // hitTree->Branch("peDep",&peDep,"peDep[nTotalHits]/D");
-    
-  // hitTree->Branch("chX",&chX,"chX[nTotalHits]/I");
-  // hitTree->Branch("chY",&chY,"chY[nTotalHits]/I");
-  hitTree->Branch("echX",&echX,"echX[nTotalHits]/I");
-  hitTree->Branch("echY",&echY,"echY[nTotalHits]/I");
-  // hitTree->Branch("pchX",&pchX,"pchX[nTotalHits]/I");
-  // hitTree->Branch("pchY",&pchY,"pchY[nTotalHits]/I");
+  hitTree->Branch("chX",&chX,"chX[nTotalHits]/I");
+  hitTree->Branch("chY",&chY,"chY[nTotalHits]/I");
 
   double mom=0.;
   int eno=0;
@@ -437,21 +332,23 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
       }
       nHits += _nHits;
     }
-    {
-      int _nHits = hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
-      for (int iHit = 0; iHit < _nHits; iHit++) {
-	      thisHit = hReader->GetHit("siAMSTileLog", iHit);
-	      vTIntHit.push_back(thisHit);
+    if(!full50){
+      {
+        int _nHits = hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
+        for (int iHit = 0; iHit < _nHits; iHit++) {
+          thisHit = hReader->GetHit("siAMSTileLog", iHit);
+          vTIntHit.push_back(thisHit);
+        }
+        nHits += _nHits;
       }
-      nHits += _nHits;
-    }
-    {
-      int _nHits = hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
-      for (int iHit = 0; iHit < _nHits; iHit++) {
-      	thisHit = hReader->GetHit("siDAMPETileLog", iHit);
-	      vTIntHit.push_back(thisHit);
+      {
+        int _nHits = hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
+        for (int iHit = 0; iHit < _nHits; iHit++) {
+          thisHit = hReader->GetHit("siDAMPETileLog", iHit);
+          vTIntHit.push_back(thisHit);
+        }
+        nHits += _nHits;
       }
-      nHits += _nHits;
     }
     std::cout<<"EVT "<<iEv<<" NHITS "<<nHits<<std::endl;
     //nHitHisto->Fill(nHits);
@@ -501,10 +398,17 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
     // double yend1=0.;
     // double yend2=0.;
     // double threc=0.;
-
-    for (int iHit = 0; iHit < nHits; iHit++) {//una hit e' semplicemente un volume logico che si e' acceso
+    float VolPos=-9999;
+    int layerID=-1;
+    for (int iHit = 0; iHit < nHits; iHit++) {//una hit e' semplicemente un volume logico che si e' acceso      
       //      hPart[iHit]=0;	
       thisHit = vTIntHit.at(iHit);
+
+      if (thisHit->GetVolumePosition()[2]!=VolPos){
+        VolPos=thisHit->GetVolumePosition()[2];
+        layerID++;
+      }
+
       int nPHits= thisHit->GetNPartHits();
       
       if(nPHits>=2||pprod) {
@@ -525,15 +429,16 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
         if (nPHits>=2||pprod)
           thisPHit->DumpHit();
         
-        if(thisPHit->parentID==0 && thisPHit->particlePdg==22&&gEne<0){ /// primary particle hit values 
+        if(gEne<0 && thisPHit->parentID==0 && thisPHit->particlePdg==22){ /// primary particle hit values 
           gEne=1e3*thisPHit->entranceEnergy;
         }
 
       	if(thisPHit->particlePdg!=22){  /// secondary particles (electron and positron)
           nTotalHits++;
 
-          hVol[nTotalHits-1]=thisHit->GetVolumeID();
           hVolZ[nTotalHits-1]=thisHit->GetVolumePosition()[2];
+          //Mappatura volumi
+          hVol[nTotalHits-1]=layerID;
           
           xCoord[nTotalHits-1]=(thisPHit->entrancePoint[0]+thisPHit->exitPoint[0])/2;
           yCoord[nTotalHits-1]=(thisPHit->entrancePoint[1]+thisPHit->exitPoint[1])/2;
@@ -548,9 +453,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName) {
           TrID[nTotalHits-1]=thisPHit->trackID;
           ParID[nTotalHits-1]=thisPHit->parentID;
 
-          eeDep[nTotalHits-1]=1e3*thisPHit->eDep;
-          echX[nTotalHits-1]=int((xCoord[nTotalHits-1]+msidex/2.)/pitch);
-          echY[nTotalHits-1]=int((yCoord[nTotalHits-1]+msidey/2.)/pitch);
+          chX[nTotalHits-1]=int((xCoord[nTotalHits-1]+msidex/2.)/pitch);
+          chY[nTotalHits-1]=int((yCoord[nTotalHits-1]+msidey/2.)/pitch);
 
           if(thisPHit->parentID==1&&thisPHit->particlePdg==-11){ /// positron
             if (!pprod){
