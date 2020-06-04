@@ -18,9 +18,9 @@
  */
 
 // GGS headers
-//#include "utils/GGSSmartLog.h"
+#include "utils/GGSSmartLog.h"
 //#include "/home/vivi/POXsoft/NEW/GGSSoftware-install/include/utils/GGSSmartLog.h"
-#include "/Users/claudio/App/GGS/install/include/utils/GGSSmartLog.h"
+//#include "/Users/claudio/App/GGS/install/include/utils/GGSSmartLog.h"
 /*
   double
   CosAngle(const TVector3& l, const TVector3& r)
@@ -63,17 +63,21 @@ int nHits = 0;//number of TIntHits (essentially the number of firing volumes)
 int nHitsData = 0;//
 int nTotalHits = 0;//total number of TPathHits (~ nHits*<nPartHits>)
 int ppHit = -1;
-int nSt = 0;
+int nroSt = 0;
 int nHS=0;
 // double eLastZ = -1.;
 // double pLastZ = -1.;
 
 // Int_t hPart[nMaxHits]={0};
+
+
 Int_t hVol[nMaxTotalHits]={0};
 Double_t hVolZ[nMaxTotalHits]={0.};
 
 // //  Double_t zPath[nMaxTotalHits];
-Double_t gEne=-9999; 
+Double_t gEne=-9999;
+Double_t gX=-9999;
+Double_t gY=-9999; 
 Double_t zPath=-9999;
 
 Double_t xCoord[nMaxTotalHits]={0.};
@@ -137,7 +141,7 @@ void CleanEvent(){
   nHits = 0;
   nTotalHits = 0;
   ppHit = -1;
-  nSt = 0;
+  nroSt = 0;
   nHS = 0;
   // eLastZ = -1.;
   // pLastZ = -1.;
@@ -147,7 +151,9 @@ void CleanEvent(){
   std::fill_n(hVolZ, nMaxHits, 0.);
   
   // //  Double_t zPath[nMaxTotalHits];
-  gEne=-9999; 
+  gEne=-9999;
+  gX=-9999;
+  gY=-9999; 
   // zPath=-9999;
   std::fill_n(xCoord, nMaxTotalHits, -9999.9);
   std::fill_n(yCoord, nMaxTotalHits, -9999.9);
@@ -175,6 +181,69 @@ void CleanEvent(){
   return;
 }
 
+//---------------------------------- MAKE LADDERCONF FILE -------------
+
+// now only setting pitch
+void ConfLadder(int ntdr, double spi, double kpi){
+  /* #JINF TDR SPITCH (mm) KPITCH (mm) SRESO (mm) KRESO(mm) MultiplicyFlip SMirror KMirror BondType SHiThresh SLoThresh KHiThresh KLoThresh
+0 0 0.220 0.220 0.010 0.010 0 0 0 0 3.5 1.0 3.5 1.0
+0 1 0.220 0.220 0.010 0.010 0 0 0 0 3.5 1.0 3.5 1.0
+	
+  */
+  ofstream fout;
+  fout.open ("ladderconf_mc.dat");
+  int dummy=0;
+  double sRes=0.010;
+  double kRes=0.010;
+  double sHiT=3.5;
+  double sLoT=1.0;
+  double kHiT=3.5;
+  double kLoT=1.0;
+  
+  fout<<"#JINF TDR SPITCH (mm) KPITCH (mm) SRESO (mm) KRESO(mm) MultiplicyFlip SMirror KMirror BondType SHiThresh SLoThresh KHiThresh KLoThresh"<<endl; 
+
+  for (int il=0;il<ntdr;il++){
+    fout<<dummy<<" "<<il<<" "<<showpoint<<setprecision(3)<<spi<<" "<<kpi<<" "<<setprecision(2)<<sRes<<" "<<kRes<<" "<<dummy<<" "<<dummy<<" "<<dummy<<" "<<dummy<<" "<<sHiT<<" "<<sLoT<<" "<<kHiT<<" "<<kLoT<<endl;
+
+  }
+  
+  fout.close ();
+  
+}
+
+//---------------------------------- MAKE ALIGNMENT.DAT FILE -------------
+
+// now only setting Z of layers
+void AlignmentMC(int ntdr, double * alz){
+  // #JINF TDR S (mm) K (mm) Z (mm) MultiplicyFlip
+//0 0 225.0 225.0 -299.925 0 
+//0 1 225.0 225.0 -269.925 0 
+//...
+//0 23 225.0 225.0 750.075 0 	
+//
+  
+  ofstream alfout;
+  alfout.open ("alignment_mc.dat");
+  int jinf=0;
+  double als=225.0;
+  double alk=225.0;
+  int mflip=0;
+  
+  alfout<<"#JINF TDR S (mm) K (mm) Z (mm) MultiplicyFlip"<<endl; 
+
+  for (int il=0;il<ntdr;il++){
+    alfout<<jinf<<" "<<il<<" "<<showpoint<<setprecision(4)<<als<<" "<<alk<<" "<<setprecision(6)<<alz[il]<<" "<<mflip<<endl;
+  }
+  
+  alfout.close ();
+  
+}
+
+//cout << fixed << showpoint;
+//    cout << setprecision(2);
+// --------------------------------------------
+
+
 void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1) {
   static const std::string routineName("simpleanalysis");
   
@@ -195,7 +264,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
     std::cout << "*** Simulation informations:\n";
     std::cout << "Geant4 version     : " << simInfo->G4Version << "\n";
     std::cout << "GGS version        : " << simInfo->GGSVersion << "\n";
-    //std::cout << "Geometry version   : " << simInfo->geometryVersion << "\n";
+    //    std::cout << "Geometry version   : " << simInfo->geometryVersion << "\n";
+    std::cout << "Full version : " << full50 << "\n";
   }
   else {
     std::cout << "*** No simulation information are available\n";
@@ -235,9 +305,14 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
   //MD: FIX ME
   double msidex = geoParams->GetRealGeoParam("tileX"); // cm sensor measurement side length
   double msidey = geoParams->GetRealGeoParam("tileY"); // cm sensor measurement side length
-  double pitch = geoParams->GetRealGeoParam("tileSPitch")/10.; // cm sensor pitch
-  double ropitch=2*pitch; // readout pitch
+  double spitch = geoParams->GetRealGeoParam("tileSPitch")/10.; // cm sensor pitch
+  double kpitch = geoParams->GetRealGeoParam("tileKPitch")/10.; // cm sensor pitch
+  //double kpitch = geoParams->GetRealGeoParam("tileSPitch")/10.; // cm sensor pitch
   double msidexy=0.;
+
+  
+  ///add insensitive border in geoParams
+  //  double mborderx= msidex-pitch*nstr;
   
   // double offsetx = geoParams->GetRealGeoParam("layersOffsetX"); // cm offset X
   // double offsety = geoParams->GetRealGeoParam("layersOffsetY"); // cm offset Y
@@ -295,13 +370,24 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 
 
   int nLayers = geoParams->GetIntGeoParam("targetLayerNo")+geoParams->GetIntGeoParam("smLayerNo");
+
+  ConfLadder(nLayers, geoParams->GetRealGeoParam("tileSPitch"), geoParams->GetRealGeoParam("tileKPitch"));
+    
+  Double_t alza[nLayers];
+
+  // ALIGNMENT of AMS-like tiles
+  // ladders in horizontal position always
+  // 0: sensors K vertical strips -> measure horizontal coord (X)
+  // 1: sensors S horizontal strips -> measure vertical coord (Y) 
+  
   // manual alignment for older files
-  Int_t xyAlign[14]={0,1,0,1,0,1,0,1,0,1,1,1,1,1};
+  //Int_t xyAlign[14]={0,1,0,1,0,1,0,1,0,1,1,1,1,1};
   //Int_t xyAlign[20]={0,1,0,1,0,1,0,1,0,1,1,1,1,1,0,0,0,0,0,0};
   //Int_t xyAlign[24]={0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1};
-  
-  if(!full50){
-    //  Int_t xyAlign[nLayers];
+  Int_t xyAlign[nLayers];  
+
+  //if(!full50){
+  if(1){
     string sAlign=geoParams->GetStringGeoParam("layerAlignment");
     for (int isn=0; isn<nLayers; isn++) {
       xyAlign[isn]=sAlign[isn]-'0';
@@ -316,6 +402,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
   TTree *runTree =  new TTree("runTree","tree of mcrun");
   runTree->Branch("nLayers",&nLayers,"nLayers/I");
   runTree->Branch("xyAlign",&xyAlign,"xyAlign[nLayers]/I");
+  runTree->Branch("zPos",&alza,"zPos[nLayers]/D");
   runTree->Branch("nEvts",&nEvts,"nEvts/I");
   runTree->Branch("gEne",&gEne,"gEne/D");
   
@@ -327,6 +414,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
   //hitTree->Branch("nHitsData",&nHitsData,"nHitsData/I");
   hitTree->Branch("nTotalHits",&nTotalHits,"nTotalHits/I");
   hitTree->Branch("ppHit",&ppHit,"ppHit/I");
+  runTree->Branch("gX",&gX,"gX/D");
+  runTree->Branch("gY",&gY,"gY/D");
   // hitTree->Branch("eLastZ",&eLastZ,"eLastZ/D");
   // hitTree->Branch("pLastZ",&pLastZ,"pLastZ/D");
 
@@ -363,9 +452,9 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
   nEvts=reader.GetEntries();
   
   COUT(INFO) << "Begin loop over " << nEvts << " events" << ENDL;
-  
-    for (iEv = 0; iEv < nEvts; iEv++) {
-  // for (int iEv = 0; iEv < 33; iEv++) {
+  //  int dones=2;  
+  for (iEv = 0; iEv < nEvts; iEv++) {
+    //    for (int iEv = 0; iEv < 33; iEv++) {
     
     CleanEvent();
     
@@ -476,6 +565,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
       if (thisHit->GetVolumePosition()[2]!=VolPos){
         VolPos=thisHit->GetVolumePosition()[2];
         layerID++;
+	if(iEv==0)
+	  alza[layerID]=VolPos*10.;
       }
       
       int nPHits= thisHit->GetNPartHits();
@@ -494,8 +585,11 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
         if (nPHits>=2||pprod)
           thisPHit->DumpHit();
         
-        if(gEne<0 && thisPHit->parentID==0 && thisPHit->particlePdg==22){ /// primary particle hit values 
+	//        if(gEne<0 && thisPHit->parentID==0 && thisPHit->particlePdg==22){ /// primary particle hit values
+	        if(gEne<0 && thisPHit->parentID==0){ /// primary particle hit values 
           gEne=1e3*thisPHit->entranceEnergy;
+	  gX=thisPHit->entrancePoint[0];
+	  gY=thisPHit->entrancePoint[1];
         }
 	
       	if(thisPHit->particlePdg!=22){  /// secondary particles (electron and positron)
@@ -520,15 +614,21 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
           ParID[nTotalHits-1]=thisPHit->parentID;
 	  
           //chY[nTotalHits-1]=int((yCoord[nTotalHits-1]+msidey/2.)/ropitch);
-	  //int xych=xyAlign[hVol[nTotalHits-1]]?chY[nTotalHits-1]:chX[nTotalHits-1];	  
-	  nSt =xyAlign[hVol[nTotalHits-1]]?int(msidey/ropitch):int(msidex/ropitch);
+	  //int xych=xyAlign[hVol[nTotalHits-1]]?chY[nTotalHits-1]:chX[nTotalHits-1];
+	  
+	  //	  nroSt =xyAlign[hVol[nTotalHits-1]]?int(msidey/ropitch):int(msidex/ropitch);
+	  nroSt =xyAlign[hVol[nTotalHits-1]]?int(msidey/spitch):int(msidex/kpitch); // Read-out strips are 4545 if side=1(Y<-->S) 2403 if side=0 (X<-->K) 
+	  
 	  
 	  /// checking for readout strip channels 
 	  int ichxy=-1;
 	  int ochxy=-1;
 	  double ixy=0.;
 	  double oxy=0.;
+	  double ropitch=0.;
+
 	  if(xyAlign[hVol[nTotalHits-1]]){
+	    ropitch=spitch;
 	    ixy=thisPHit->entrancePoint[1];
 	    oxy=thisPHit->exitPoint[1];
 	    chXY[nTotalHits-1]=int(((yCoord[nTotalHits-1])+msidey/2.)/ropitch);
@@ -536,6 +636,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	    ochxy=int((oxy+msidey/2.)/ropitch);
 	    msidexy=msidey;
 	  }else{
+	    ropitch=kpitch;
 	    ixy=thisPHit->entrancePoint[0];
 	    oxy=thisPHit->exitPoint[0];
 	    chXY[nTotalHits-1]=int(((xCoord[nTotalHits-1])+msidex/2.)/ropitch); 
@@ -543,6 +644,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	    ochxy=int((oxy+msidex/2.)/ropitch);
 	    msidexy=msidex;
 	  }
+	    
+	  double impitch=0.5*ropitch; /// implant pitch
 	  
 	  /// digital reso	  
 	  /// check for inclined tracks crossing multiple strips
@@ -550,146 +653,101 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	  
 	  hitStrips[nTotalHits-1]=abs(ochxy-ichxy)+1;
 	  simStrips[nTotalHits-1]=2*cpw;
+	  	  
+	 	  
+	  bool iro=false;
+	  bool oro=false;
 	  
-	  if(ichxy==ochxy){
-	    hitChan.push_back(chXY[nTotalHits-1]);
-	    double dch = (ixy+msidexy/2.)/ropitch-chXY[nTotalHits-1]; // chXY also in same strip
-	    if(dch<=0.5){ // is readout strip
-	      simStrips[nTotalHits-1]+=1;
-	      hitDep.push_back(eDep[nTotalHits-1]);
-	      
-	      if(pri)
-		cout<<"------------>SINGLE RO: "<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CH "<<chXY[nTotalHits-1]<<" DCH "<<dch<<" EDEP "<<eDep[nTotalHits-1]<<endl;
-
-	      
-	  // readout strip so just add here capacitive coupling
-	      if(pri)
-		cout<<"SIM VALS: "<<simStrips[nTotalHits-1]<<" ";
-	      for (int ic=0;ic<2*cpw+1;ic++){
-		if(pri)
-		  cout<<chXY[nTotalHits-1]-cpw+ic<<":"<<chcp[ic]*eDep[nTotalHits-1]<<" ";
-
-		/// add check for sensor border -> to add everywhere
-		if(chXY[nTotalHits-1]-cpw+ic>=0&&chXY[nTotalHits-1]-cpw+ic<=nSt){
-		simChan.push_back(chXY[nTotalHits-1]-cpw+ic);
-		simDep.push_back(chcp[ic]*eDep[nTotalHits-1]);
-		}else{
-		  simStrips[nTotalHits-1]-=1;
-		  cout<<"SENSOR BORDER REACHED: "<<chXY[nTotalHits-1]-cpw+ic<<" "<<chcp[ic]*eDep[nTotalHits-1]<<" LOST SIGNAL"<<endl;
-		}
-	      }
-	      if(pri)
-		cout<<endl;
-	      
-	    }else{ 
-	      // not read -> 50% signal on left and right (readout) strips
-	      hitChan.push_back(chXY[nTotalHits-1]+1);
-	      hitDep.push_back(eDep[nTotalHits-1]/2);
-	      hitDep.push_back(eDep[nTotalHits-1]/2);
-	      hitStrips[nTotalHits-1]+=1;
-	      
-	      if(pri)
-		cout<<"------------>SINGLE NOT RO: "<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CHS "<<chXY[nTotalHits-1]<<" "<<chXY[nTotalHits-1]+1<<" HSTR "<< hitStrips[nTotalHits-1]<<" DCH "<<dch<<" EDEP "<<eDep[nTotalHits-1]/2<<endl;
-	      
-	      /// add capacitive coupling
-	      double ccDep[hitStrips[nTotalHits-1]+2*cpw];
-	      for(int i=0;i<hitStrips[nTotalHits-1]+2*cpw;i++)
-		ccDep[i]=0.;
-	      	      
-	      for (int hs=0;hs<hitStrips[nTotalHits-1];hs++){
-		simStrips[nTotalHits-1]+=1;
-		for (int icc=0;icc<2*cpw+1;icc++){
-		  ccDep[icc+hs]+=chcp[icc]*eDep[nTotalHits-1]/2;
-		  if(hs==0)
-		    simChan.push_back(chXY[nTotalHits-1]-cpw+icc);
-		}
-		if(hs!=0)
-		  simChan.push_back(simChan.back()+hs);
-	      }
-	      
-	      if(pri){
-		cout<<"SIM VALS: "<<simStrips[nTotalHits-1]<<" ";
-		for (int id=0; id<hitStrips[nTotalHits-1]+2*cpw;id++){
-		  cout<<chXY[nTotalHits-1]-cpw+id<<":"<<ccDep[id]<<" ";
-		}
-		cout<<endl;
-	      }
-	      
-	      simDep.insert(simDep.end(),ccDep,ccDep+hitStrips[nTotalHits-1]+2*cpw);		
-	      
-	    }// left and right strip
-	    
-	    
-	  }else{
-	    /// inclined trace  hitStrips[nTotalHits-1]=abs(ochxy-ichxy)+1 is >1
-	    bool iro=false;
-	    bool oro=false;
-	    
-	    double itailfr=0.;
-	    double iheadfr=0.;
-	    double otailfr=0.;
-	    double oheadfr=0.;
-	    
-	    double trl=abs(ixy-oxy);
-	    
-	    double dich = (ixy+msidexy/2.)/ropitch-ichxy;
-	    if(dich<=0.5){
-	      // inch isreadout
+	  double itailfr=0.;
+	  double iheadfr=0.;
+	  double otailfr=0.;
+	  double oheadfr=0.;
+	  
+	  double trl=abs(ixy-oxy);
+	  
+	  double dich = (ixy+msidexy/2.)/ropitch-ichxy;
+	  if(dich<=0.5){
+	    // inch isreadout
 	      iro=true;
 	      itailfr=(ixy+msidexy/2.-ichxy*ropitch)/trl; 
 	      iheadfr=((ichxy+0.5)*ropitch-ixy-msidexy/2.)/trl;
-	    }else{
-	      itailfr=(ixy+msidexy/2.-(ichxy+0.5)*ropitch)/trl;
-	      iheadfr=((ichxy+1)*ropitch-ixy-msidexy/2.)/trl;
-	      if(ochxy<ichxy) 
-		hitStrips[nTotalHits-1]+=1; /// in ch is tail and not ro-> add right strip (ichxy+1)
-	    }
+	  }else{
+	    itailfr=(ixy+msidexy/2.-(ichxy+0.5)*ropitch)/trl;
+	    iheadfr=((ichxy+1)*ropitch-ixy-msidexy/2.)/trl;
+	    /// if(ochxy<ichxy)
+	    if(oxy<ixy) 
+	      hitStrips[nTotalHits-1]+=1; /// in ch is tail and not ro-> add right strip (ichxy+1)
+	  }
+	  
+	  double doch = (oxy+msidexy/2.)/ropitch-ochxy;
+	  if(doch<=0.5){
+	    // outch is readout
+	    oro=true;
+	    otailfr=(oxy+msidexy/2.-ochxy*ropitch)/trl; 
+	    oheadfr=((ochxy+0.5)*ropitch-oxy-msidexy/2.)/trl;
+	  }else{
+	    otailfr=(oxy+msidexy/2.-(ochxy+0.5)*ropitch)/trl; 
+	    oheadfr=((ochxy+1)*ropitch-oxy-msidexy/2.)/trl;
+	    /// if(ochxy>ichxy)
+	    if(oxy>ixy) 
+	      hitStrips[nTotalHits-1]+=1; /// out ch is tail and not ro -> add right strip (ochxy+1)
+	  }
+	  
+	  
+	  int strn=0;
+	  int swn=0;
+	  /// fully contained strip Dep frac
+	  double  sfrac = 0.5*ropitch/trl; // strip implant = 0.5*ropitch
+	  double iDep[hitStrips[nTotalHits-1]];
+	  for(int i=0;i<hitStrips[nTotalHits-1];i++){
+	    iDep[i]=0.;
+	  }
 	    
-	    double doch = (oxy+msidexy/2.)/ropitch-ochxy;
-	    if(doch<=0.5){
-	      // outch is readout
-	      oro=true;
-	      otailfr=(oxy+msidexy/2.-ochxy*ropitch)/trl; 
-	      oheadfr=((ochxy+0.5)*ropitch-oxy-msidexy/2.)/trl;
-	    }else{
-	      otailfr=(oxy+msidexy/2.-(ochxy+0.5)*ropitch)/trl; 
-	      oheadfr=((ochxy+1)*ropitch-oxy-msidexy/2.)/trl;
-	      if(ochxy>ichxy) 
-		hitStrips[nTotalHits-1]+=1; /// out ch is tail and not ro -> add right strip (ochxy+1)
-	    }
-	    
-	    
-	    int strn=0;
-	    int swn=0;
-	    /// fully contained strip Dep frac
-	    double  sfrac = pitch/trl; // pitch = 0.5*ropitch
-	    double iDep[hitStrips[nTotalHits-1]];
-	    for(int i=0;i<hitStrips[nTotalHits-1];i++){
-	      iDep[i]=0.;
-	    }
 
-	    if(ochxy>ichxy){ /// in ch is head out ch is tail
-	      //hitChan.push_back(ichxy);
-	      
+	  if (ochxy==ichxy){
+	    if(iro){
+	      iDep[0]=eDep[nTotalHits-1]*(oro?1.:(iheadfr+otailfr/2.));
+	      if(!oro)
+		iDep[1]=eDep[nTotalHits-1]*(otailfr/2.);
+	    
+	    if(pri)
+	      cout<<"------------>SINGLE IRO "<<(oro?"ORO: ":": ")<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CH "<<chXY[nTotalHits-1]<<" DCH I/O: "<<dich<<" "<<doch<<" EDEP "<<eDep[nTotalHits-1]<<" iDep:"<<iDep[0]<<" "<<(oro?iDep[0]:iDep[1])<<endl;
+
+	    }
+	    else{
+	      iDep[0]=eDep[nTotalHits-1]*(oro?(itailfr/2. + oheadfr):0.5);
+	      iDep[1]=eDep[nTotalHits-1]*(oro?itailfr/2.:0.5);
+
+	      cout<<"------------>SINGLE INRO "<<(oro?"ORO: ":": ")<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CHS "<<ichxy<<" "<<ichxy+1<<" HSTR "<< hitStrips[nTotalHits-1]<<" DCH I/O: "<<dich<<" "<<doch<<" EDEP "<<eDep[nTotalHits-1]<<" iDep:"<<iDep[0]<<" "<<iDep[1]<<endl;
+	    }		
+	    
+	  }
+	  else{ // ochxy!=ichxy
+	    
+	    
+	    if(ochxy>ichxy){ /// in ch is head out ch is tail	    
+	    //hitChan.push_back(ichxy);
+	    
 	      if(oro){
 		strn=hitStrips[nTotalHits-1]-1;
 		iDep[strn]=eDep[nTotalHits-1]*(otailfr + sfrac/2.);
-	      }
-	      else{
+	      }else{
 		strn=hitStrips[nTotalHits-1]-2; // as hitStrips has been already incremented
 		iDep[strn]=eDep[nTotalHits-1]*(otailfr/2. + sfrac*3./2.);
 		iDep[hitStrips[nTotalHits-1]-1]=eDep[nTotalHits-1]*otailfr/2.;
 	      }
 	      
-	      for (int hs=1;hs<strn;hs++){
-		//hitChan.push_back(ichxy+hs);
-		iDep[hs]=eDep[nTotalHits-1]*2*sfrac;  	  
-	      }	      
-	      
+	      if(strn>1){ // check for vertical
+		for (int hs=1;hs<strn;hs++){
+		  //hitChan.push_back(ichxy+hs);
+		  iDep[hs]=eDep[nTotalHits-1]*2*sfrac;  	  
+		}	      
+	      }
+	     
 	      //hitChan.push_back(ochxy);
 	      //if(!oro)
 	      //hitChan.push_back(ochxy+1);
-		
+	      
 	      if(iro){
 		iDep[0]=eDep[nTotalHits-1]*(iheadfr+sfrac/2.);
 	      }else{
@@ -702,7 +760,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	      //else
 	      //	hitDep.insert(hitDep.end(),iDep,iDep+hitStrips[nTotalHits-1]);
 	      
-	    }else{ /// och<ich
+	    }else{ /// ochxy<ichxy
 	      //hitChan.push_back(ochxy);
 	      
 	      if(iro){
@@ -715,11 +773,12 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 		iDep[hitStrips[nTotalHits-1]-1]=eDep[nTotalHits-1]*itailfr/2.;
 	      }
 	      
-	      for (int hs=1;hs<strn;hs++){
-		//hitChan.push_back(ichxy+hs);
-		iDep[hs]=eDep[nTotalHits-1]*2*sfrac;  	  
-	      }	      
-	      
+	      if(strn>1){ // check for vertical
+		for (int hs=1;hs<strn;hs++){
+		  //hitChan.push_back(ichxy+hs);
+		  iDep[hs]=eDep[nTotalHits-1]*2*sfrac;  	  
+		}	      
+	      }
 	      //hitChan.push_back(ichxy);
 	      //	      if(!iro)
 	      //		hitChan.push_back(ichxy+1);
@@ -730,65 +789,53 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 		iDep[0]=eDep[nTotalHits-1]*iheadfr/2.;
 		iDep[1]+=(eDep[nTotalHits-1]*(iheadfr/2.-sfrac/2.));
 	      }
-
-	      if(pri)
-		cout<<"------------>INCLINED: "<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CoG "<<chXY[nTotalHits-1]<<" HSTR "<<hitStrips[nTotalHits-1]<<" TRL "<<trl<<" EDEP "<<eDep[nTotalHits-1]<<"  CHX IN "<<ichxy<<" OUT "<<ochxy<<"  HFR "<<(ichxy<ochxy?iheadfr:oheadfr)<<" TFR "<<(ichxy<ochxy?otailfr:itailfr)<<endl;
-
 	      
-	      
-	      //cout<<"INCL HIT VALS: "<<hitStrips[nTotalHits-1]<<" ";
-	      for (int id=0; id<hitStrips[nTotalHits-1];id++){
-		//cout<<(ochxy>ichxy?ichxy:ochxy)+id<<":"<<iDep[id]<<" ";
-		hitChan.push_back((ochxy>ichxy?ichxy:ochxy)+id);
-		hitDep.push_back(iDep[id]);
-	      }
-	      //cout<<endl;
-	      
-
-	      //	hitDep.insert(hitDep.end(),iDep,iDep+hitStrips[nTotalHits-1]);
-	      
-		//		cout<<"------------>INCLINED: "<<iEv<<" "<<hVol[nTotalHits-1]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" CoG "<<chXY[nTotalHits-1]<<" HSTR "<<hitStrips[nTotalHits-1]<<" TRL "<<trl<<" EDEP "<<eDep[nTotalHits-1]<<"  CHX IN OUT "<<ichxy<<" "<<ochxy<<"  HE "<<oheadfr<<" TA "<<itailfr<<endl;
-	      
-	    }	    
-
-	    /// now apply capacitive coupling 
+	    }/// ochxy<ichxy
 	    
-	    double cciDep[hitStrips[nTotalHits-1]+2*cpw];
-	    for(int i=0;i<hitStrips[nTotalHits-1]+2*cpw;i++)
-	      cciDep[i]=0.;
-	    
-	    for (int hs=0;hs<hitStrips[nTotalHits-1];hs++){
-	      simStrips[nTotalHits-1]+=1;
-	      for (int icc=0;icc<2*cpw+1;icc++){
-		cciDep[icc+hs]+=chcp[icc]*iDep[hs];
-		//if(hs==0)
-		  //simChan.push_back(hitChan.at(hs)-cpw+icc);
-	      }
-	      //if(hs!=0)
-		//simChan.push_back(simChan.back()+hs);
-	    }
-	    //	    cout<<endl;
 	    if(pri)
-	      cout<<"INCL SIM VALS: "<<simStrips[nTotalHits-1]<<" ";
-	    for (int id=0; id<hitStrips[nTotalHits-1]+2*cpw;id++){
-	      if(pri)
-		cout<<(ochxy>ichxy?ichxy:ochxy)-cpw+id<<":"<<cciDep[id]<<" ";
-		
-	      if((ochxy>ichxy?ichxy:ochxy)-cpw+id>=0&&(ochxy>ichxy?ichxy:ochxy)-cpw+id<=nSt){
-		simChan.push_back((ochxy>ichxy?ichxy:ochxy)-cpw+id);
-		simDep.push_back(cciDep[id]);
-	      }else{
-		simStrips[nTotalHits-1]-=1;
-		if(pri)
-		  cout<<"SENSOR BORDER REACHED: "<<chXY[nTotalHits-1]-cpw+id<<" "<<cciDep[id]<<" LOST SIGNAL"<<endl;
-	      }
-	    }
-	    cout<<endl;
+	      cout<<"------------>INCLINED: "<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CoG "<<chXY[nTotalHits-1]<<" HSTR "<<hitStrips[nTotalHits-1]<<" TRL "<<trl<<" EDEP "<<eDep[nTotalHits-1]<<"  CHX IN "<<ichxy<<" OUT "<<ochxy<<"  HFR "<<(ichxy<ochxy?iheadfr:oheadfr)<<" TFR "<<(ichxy<ochxy?otailfr:itailfr)<<endl;
+
+	  }/// ichxy!=ochxy
+
+	  //cout<<"INCL HIT VALS: "<<hitStrips[nTotalHits-1]<<" ";
+	  for (int id=0; id<hitStrips[nTotalHits-1];id++){
+	    //cout<<(ochxy>ichxy?ichxy:ochxy)+id<<":"<<iDep[id]<<" ";
+	    //hitChan.push_back((ochxy>ichxy?ichxy:ochxy)+id);
+	    hitChan.push_back((oxy>ixy?ichxy:ochxy)+id);
+	    hitDep.push_back(iDep[id]);
+	  }
+	      //cout<<endl;
 	    
-	    //	    simDep.insert(simDep.end(),cciDep,cciDep+hitStrips[nTotalHits-1]+2*cpw);			
 	    
-	  }// inch!=outch 
+	  /// now apply capacitive coupling 
 	  
+	  double cciDep[hitStrips[nTotalHits-1]+2*cpw];
+	  for(int i=0;i<hitStrips[nTotalHits-1]+2*cpw;i++)
+	    cciDep[i]=0.;
+	    
+	  for (int hs=0;hs<hitStrips[nTotalHits-1];hs++){
+	    simStrips[nTotalHits-1]+=1;
+	    for (int icc=0;icc<2*cpw+1;icc++){
+	      cciDep[icc+hs]+=chcp[icc]*iDep[hs];
+	    }
+	  }
+	  //	    cout<<endl;
+	  if(pri)
+	    cout<<"**** SIM VALS: "<<simStrips[nTotalHits-1]<<" ";
+	  for (int id=0; id<hitStrips[nTotalHits-1]+2*cpw;id++){
+	    if(pri)
+	      cout<<(oxy>ixy?ichxy:ochxy)-cpw+id<<":"<<cciDep[id]<<" ";
+		
+	    if((oxy>ixy?ichxy:ochxy)-cpw+id>=0&&(oxy>ixy?ichxy:ochxy)-cpw+id<=nroSt){
+	      simChan.push_back((oxy>ixy?ichxy:ochxy)-cpw+id);
+	      simDep.push_back(cciDep[id]);
+	    }else{
+	      simStrips[nTotalHits-1]-=1;
+	      if(pri)
+		cout<<"SENSOR BORDER REACHED: "<<chXY[nTotalHits-1]-cpw+id<<" "<<cciDep[id]<<" LOST SIGNAL"<<endl;
+	    }
+	  }
+	  cout<<endl;
 	  
 	  if(thisPHit->parentID==1&&thisPHit->particlePdg==-11){ /// positron
 	    if (!pprod){
@@ -796,7 +843,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	      ppHit=iHit;
 	    }
 	  }
-	} 
+	}
 	
       } // loop on particle hits
       
@@ -805,7 +852,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
       // totEDep += thisHit->eDep;
       // if(DB)
       // 	std::cout<<"*********************  EVT: "<<iEv<<" HIT: "<< iHit <<" nPART: "<< hPart[iHit]<< std::endl;
-    
+      
     }// loop on hits
     
 
@@ -866,7 +913,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
       int inx=0;
       for(int in=0;in<nTotalHits;in++){
 	
-	cout<<"LAYER "<<hVol[in]<<" PDG "<<PDG[in]<<" ParID"<<ParID[in]<<": "<<endl;
+	cout<<"LAYER "<<hVol[in]<<" PDG "<<PDG[in]<<" ParID "<<ParID[in]<<": "<<endl;
 	for (int id=0;id<simStrips[in];id++)
 	  {
 	    cout <<simChan[inx]<<" "<<simDep[inx]<<endl;
@@ -953,7 +1000,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
   
   outFile->Close();
   delete outFile;
-  
+  AlignmentMC(nLayers,alza);  
   COUT(INFO) << "Analysis finished" << ENDL;
   
   return;
