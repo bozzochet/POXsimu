@@ -1,0 +1,66 @@
+##### Setup the particle generator #####
+/GGS/generatorActions/set gun                          # Use the GGS gun generator
+#/GGS/generatorActions/gun/particle proton              # Shoot protons
+#/GGS/generatorActions/gun/particle e-              # Shoot electrons
+/GGS/generatorActions/gun/particle gamma              # Shoot gamma
+#/GGS/generatorActions/gun/particle mu-
+#/GGS/generatorActions/gun/particle ion                 # Shoot ?...
+#/gun/ion 8 16                     # Shoot ?...
+
+#/GGS/generatorActions/gun/energy 1 GeV               # ... of 100 GeV ...
+/GGS/generatorActions/gun/energy 100 MeV               # ... of 100 GeV ...
+
+#/GGS/generatorActions/gun/minTheta 0 deg               # ... with a polar angle between 0 ...
+#/GGS/generatorActions/gun/maxTheta 0 deg              # ... and 10 deg ...
+/GGS/generatorActions/gun/minTheta 180 deg               # ... with a polar angle between 0 ...
+/GGS/generatorActions/gun/maxTheta 180 deg              # ... and 10 deg ...
+
+/GGS/generatorActions/gun/minPhi 0 deg                 # ... and an azimuthal angle between 0 ...
+/GGS/generatorActions/gun/maxPhi 360 deg               # ... and 360 deg ...
+
+/GGS/generatorActions/gun/position 0 0 -100 cm           # ... from a fixed point above the instrument
+#/GGS/generatorActions/gun/position 0 0 -17 cm           # ... from a fixed point above the instrument
+
+##### Setup the sensitive detectors #####
+
+/GGS/printLogVols 1
+
+# these are the logical volumes containing the tiles (wafers). Let's use the tiles.########
+#/GGS/scoring/addGGSIntHitSD siLayerMiniLog
+#/GGS/scoring/siLayerMiniLog.GGSIntHitSD/storeParticleHits true
+
+#/GGS/scoring/addGGSIntHitSD siLayerShortLog
+#/GGS/scoring/siLayerShortLog.GGSIntHitSD/storeParticleHits true
+
+#/GGS/scoring/addGGSIntHitSD siLayerLongLog
+#/GGS/scoring/siLayerLongLog.GGSIntHitSD/storeParticleHits true
+
+#/GGS/scoring/addGGSIntHitSD siLayerDampeLog
+#/GGS/scoring/siLayerDampeLog.GGSIntHitSD/storeParticleHits true
+############################################################################################
+
+# tiles (wafers)############################################################################
+/GGS/scoring/addGGSIntHitSD siTileLog
+/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
+
+/GGS/scoring/addGGSIntHitSD siAMSTileLog
+/GGS/scoring/siAMSTileLog.GGSIntHitSD/storeParticleHits true
+
+/GGS/scoring/addGGSIntHitSD siDAMPETileLog
+/GGS/scoring/siDAMPETileLog.GGSIntHitSD/storeParticleHits true
+
+############################################################################################
+
+# MD: the strip volumes for now are incomplete and not placed
+#/GGS/scoring/addGGSIntHitSD siStripLog
+#/GGS/scoring/siStripLog.GGSIntHitSD/storeParticleHits true
+
+##### Setup the output on ROOT file #####
+/GGS/userActions/addGGSHitsAction                      # Save hits
+/GGS/userActions/addGGSMCTruthAction                   # Save MC truth
+/GGS/userActions/addGGSHadrIntAction                   # Save information about 1st hadronic interaction...
+/GGS/userActions/hadrIntAction/outProducts true        # ... and also informations about the produced particles
+
+#/run/beamOn 350
+/run/beamOn 10000
+

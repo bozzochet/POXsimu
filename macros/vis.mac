@@ -1,96 +1,35 @@
-
 #########################################
 # Basic geometry visualization commands #
 #########################################
 
 # Open an OpenGL visualization
 #/vis/open OGL 600x600-0+0
-#/vis/open VRML2FILE
-
 #/vis/viewer/set/autoRefresh false
-#/vis/verbose errors
-/vis/verbose 1
+/vis/verbose errors
+#/vis/verbose 1
 
-# Draw geometry:
+# Draw the detector and set the view parameters
 /vis/drawVolume
-#
-# Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 0. 0.
-#
-# Specify zoom value:
-#/vis/viewer/zoom 2.
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 45 0
+/vis/viewer/zoom 1.4
+/vis/scene/add/axes 0 0 0 1 m
 
-# Draw smooth trajectories at end of event, showing trajectory points
-# as markers 2 pixels wide:
+# Set trajectory options
 /vis/scene/add/trajectories smooth
 #/vis/modeling/trajectories/create/drawByParticleID
 /vis/modeling/trajectories/create/drawByCharge
 #/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
 #/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
 
+# To draw only gammas:
+/vis/filtering/trajectories/create/particleFilter
+/vis/filtering/trajectories/particleFilter-0/add gamma
+/vis/filtering/trajectories/particleFilter-0/add neutron
 
-##### Setup the particle generator #####
-/GGS/generatorActions/set gun                          # Use the GGS gun generator
-#/GGS/generatorActions/gun/particle proton              # Shoot protons
-#/GGS/generatorActions/gun/particle e-              # Shoot electrons
-/GGS/generatorActions/gun/particle gamma              # Shoot gamma
-#/GGS/generatorActions/gun/particle ion                 # Shoot ?...
-#/gun/ion 8 16                     # Shoot ?...
+# To invert the above, drawing all particles except gammas,
+# keep the above two lines but also add:
+/vis/filtering/trajectories/particleFilter-0/invert true
 
-#/GGS/generatorActions/gun/energy 1 GeV               # ... of 100 GeV ...
-/GGS/generatorActions/gun/energy 100 MeV               # ... of 100 GeV ...
-
-#/GGS/generatorActions/gun/minTheta 0 deg               # ... with a polar angle between 0 ...
-#/GGS/generatorActions/gun/maxTheta 0 deg              # ... and 10 deg ...
-/GGS/generatorActions/gun/minTheta 180 deg               # ... with a polar angle between 0 ...
-/GGS/generatorActions/gun/maxTheta 180 deg              # ... and 10 deg ...
-
-/GGS/generatorActions/gun/minPhi 0 deg                 # ... and an azimuthal angle between 0 ...
-/GGS/generatorActions/gun/maxPhi 360 deg               # ... and 360 deg ...
-
-/GGS/generatorActions/gun/position 0 0 -100 cm           # ... from a fixed point above the instrument
-#/GGS/generatorActions/gun/position 0 0 -17 cm           # ... from a fixed point above the instrument
-
-##### Setup the sensitive detectors #####
-
-/GGS/printLogVols 1
-
-# these are the logical volumes containing the tiles (wafers). Let's use the tiles.########
-#/GGS/scoring/addGGSIntHitSD siLayerMiniLog
-#/GGS/scoring/siLayerMiniLog.GGSIntHitSD/storeParticleHits true
-
-#/GGS/scoring/addGGSIntHitSD siLayerShortLog
-#/GGS/scoring/siLayerShortLog.GGSIntHitSD/storeParticleHits true
-
-#/GGS/scoring/addGGSIntHitSD siLayerLongLog
-#/GGS/scoring/siLayerLongLog.GGSIntHitSD/storeParticleHits true
-
-#/GGS/scoring/addGGSIntHitSD siLayerDampeLog
-#/GGS/scoring/siLayerDampeLog.GGSIntHitSD/storeParticleHits true
-############################################################################################
-
-# tiles (wafers)############################################################################
-/GGS/scoring/addGGSIntHitSD siTileLog
-/GGS/scoring/siTileLog.GGSIntHitSD/storeParticleHits true
-
-/GGS/scoring/addGGSIntHitSD siAMSTileLog
-/GGS/scoring/siAMSTileLog.GGSIntHitSD/storeParticleHits true
-
-/GGS/scoring/addGGSIntHitSD siDAMPETileLog
-/GGS/scoring/siDAMPETileLog.GGSIntHitSD/storeParticleHits true
-
-############################################################################################
-
-# MD: the strip volumes for now are incomplete and not placed
-#/GGS/scoring/addGGSIntHitSD siStripLog
-#/GGS/scoring/siStripLog.GGSIntHitSD/storeParticleHits true
-
-##### Setup the output on ROOT file #####
-/GGS/userActions/addGGSHitsAction                      # Save hits
-/GGS/userActions/addGGSMCTruthAction                   # Save MC truth
-/GGS/userActions/addGGSHadrIntAction                   # Save information about 1st hadronic interaction...
-/GGS/userActions/hadrIntAction/outProducts true        # ... and also informations about the produced particles
-
-#/run/beamOn 350
-/run/beamOn 10000
-
+# To run beamOn several times and show all the events accumulated
+#/vis/scene/endOfEventAction accumulate

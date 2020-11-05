@@ -506,7 +506,7 @@ void DetectorConstruction::ConstructSDandField() {
   //  ->GetFieldManager();
   //fieldMgr->SetDetectorField(0);
   
-  fMagField = new G4UniformMagField(G4ThreeVector(fMagFieldVal,0.,0.));
+  fMagField = new G4UniformMagField(G4ThreeVector(0., fMagFieldVal, 0.));
   
   G4FieldManager* localFieldMgr= new G4FieldManager(); 
   localFieldMgr->SetDetectorField(fMagField);

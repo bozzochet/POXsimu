@@ -4,7 +4,7 @@ GGS Simulation of POX prototype detector
 
 Ingredients:
 
-- macros/vis.mac: datacard, a la Geant, to set the simulation parameters 
+- macros/run.mac: datacard, a la Geant, to set the simulation parameters 
 - macros/geo.mac: datacard for the parametric geometry
 - {src,include}/DetectorConstruction.{cc,hh}: definition, a la Geant, of the geometry 
 - Analysis/Analysis.C: ROOT macro to read the GGS output file
@@ -23,37 +23,52 @@ make install
 - simulation:
 
 ```
-GGSPenny -g plugins/libTestGeometry.so -gd macros/geo.mac -d macros/vis.mac -ro GGSRootOutput.root > GGSOut.txt
+GGSPenny -g plugins/libTestGeometry.so -gd macros/geo.mac -d macros/run.mac -ro GGSRootOutput.root
 ```
-  
-produces the file GGSRootOutput.root, and the .wrl files of the first 100 events, see for example g4_03.wrl for converted gamma  
-(the creation of the .wrl event display is suppressed commenting the
-```
-/vis/open VRML2FILE
-```
-line in the vis.mac macro)
+
+produces the file `GGSRootOutput.root` that can be later analyzed or inspected with `GGSLeonard`.
 
 - conversion from parametric geometry to GDML
+
 ```
 GGSWolowitz -g plugins/libTestGeometry.so -gd macros/geo.mac -t gdml -o plugins/libTestGeometry.gdml
 ```
 
 - conversion from parametric geometry to VGM (http://ivana.home.cern.ch/ivana/VGM.html)
+
 ```
 GGSWolowitz -g plugins/libTestGeometry.so -gd macros/geo.mac -t vgm -o plugins/libTestGeometry.vgm.root
 ```
 
-- opening of the geometry display:
+- opening of the geometry with `GGSLeonard`:
+
 ```
 GGSLeonard -g plugins/libTestGeometry.vgm.root
 ```
 
-- opening of the event display:
+- display the events with `GGSLeonard`:
+
 ```
 GGSLeonard -g plugins/libTestGeometry.vgm.root -i GGSRootOutput.root
 ```
 
-- conversion from GGS output to plain ROOT file:
+- run `GGSPenny` interactively and look the event visualization (it requires Geant to be compiled with Qt and OpenGL support):
+
+```
+GGSPenny -g plugins/libTestGeometry.so -gd macros/geo.mac -d macros/run.mac -X
+```
+(adding the `-X` flag). If the `macros/run.mac` contains the usual  `/run/beamOn NNNN` the full simulation is performed and only after it the visualizazion is opened. Commenting that line just open the visualization. To simulate one event is enough, in the visualizer window) click on the upper right green arrow or to send a `/run/beamOne 1` in the "Session:" input form.
+
+The look of the visualization is customized with the `/macros/vic.mac` file from the "source". This file in the "install" is moved to the root directory since `GGSPenny` is looking in the current working dir from which it is executed (usually the root directory of the "install").
+
+- during the `GGSPenny` run, one can save each event as .wrl file. This needs the inclusion of some `/vis/XXXX` instructions. An axample of this is done inside the `macros/run_savewrl.mac` file:
+
+```
+GGSPenny -g plugins/libTestGeometry.so -gd macros/geo.mac -d macros/run_savewrl.mac -ro GGSRootOutput.root
+```
+
+## Data Analysis
+
 ```
 root [0] .L Analysis/Analysis.C 
 root [1] SimpleAnalysis("GGSRootOutput.root", "anaOut.root")

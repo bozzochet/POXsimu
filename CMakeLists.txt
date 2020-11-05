@@ -30,9 +30,12 @@ add_subdirectory(src)
 
 # Set install rules
 install(DIRECTORY macros DESTINATION .
-	PATTERN *~ EXCLUDE)
+	PATTERN *~ EXCLUDE
+	PATTERN rootlogon.C EXCLUDE
+	PATTERN vis.mac EXCLUDE)
 
 install(DIRECTORY Analysis DESTINATION .
 	PATTERN *~ EXCLUDE)
 
-install(FILES rootlogon.C DESTINATION .)
+install(FILES macros/rootlogon.C DESTINATION .)
+install(FILES macros/vis.mac DESTINATION .)
