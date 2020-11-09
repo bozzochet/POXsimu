@@ -16,6 +16,11 @@ target_link_libraries(TestGeometry
                       ${GGS_GEO_LIBRARIES}
                      )
 
+set_target_properties(TestGeometry PROPERTIES
+                      VERSION 1
+		      LIBRARY_OUTPUT_DIRECTORY "${LIB_DIR}"
+		      )
+
 set_target_properties(TestGeometry PROPERTIES VERSION 1)
 if (APPLE)
 #    set_property(TARGET TestGeometry PROPERTY PREFIX "lib")
@@ -25,4 +30,4 @@ if (APPLE)
 endif()
 
 # Set install rules
-install(TARGETS TestGeometry DESTINATION plugins)
+install(TARGETS TestGeometry DESTINATION "${INSTALL_LIB_DIR}")

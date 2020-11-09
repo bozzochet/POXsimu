@@ -26,16 +26,26 @@ get_property(include_dirs DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY INCLUDE_DIRECTO
 list(REMOVE_ITEM include_dirs "/usr/include")
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${include_dirs})
 
+set(INC_DIR "${CMAKE_BINARY_DIR}/include")
+set(LIB_DIR "${CMAKE_BINARY_DIR}/plugins")
+set(INSTALL_INC_DIR "include")
+set(INSTALL_LIB_DIR "plugins")
+
+
 add_subdirectory(src)
+add_subdirectory(macros)
+add_subdirectory(include)
+add_subdirectory(Analysis)
+add_subdirectory(useful_commands)
 
 # Set install rules
-install(DIRECTORY macros DESTINATION .
-	PATTERN *~ EXCLUDE
-	PATTERN rootlogon.C EXCLUDE
-	PATTERN vis.mac EXCLUDE)
+#install(DIRECTORY macros DESTINATION .
+#	PATTERN *~ EXCLUDE
+#	PATTERN rootlogon.C EXCLUDE
+#	PATTERN vis.mac EXCLUDE)
 
-install(DIRECTORY Analysis DESTINATION .
-	PATTERN *~ EXCLUDE)
+#install(DIRECTORY Analysis DESTINATION .
+#	PATTERN *~ EXCLUDE)
 
 install(FILES macros/rootlogon.C DESTINATION .)
 install(FILES macros/vis.mac DESTINATION .)
