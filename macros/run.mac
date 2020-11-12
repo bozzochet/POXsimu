@@ -2,8 +2,8 @@
 /GGS/generatorActions/set gun                          # Use the GGS gun generator
 #/GGS/generatorActions/gun/particle proton              # Shoot protons
 #/GGS/generatorActions/gun/particle e-              # Shoot electrons
-/GGS/generatorActions/gun/particle gamma              # Shoot gamma
-#/GGS/generatorActions/gun/particle mu-
+#/GGS/generatorActions/gun/particle gamma              # Shoot gamma
+/GGS/generatorActions/gun/particle mu-
 #/GGS/generatorActions/gun/particle ion                 # Shoot ?...
 #/gun/ion 8 16                     # Shoot ?...
 
@@ -61,6 +61,6 @@
 /GGS/userActions/addGGSHadrIntAction                   # Save information about 1st hadronic interaction...
 /GGS/userActions/hadrIntAction/outProducts true        # ... and also informations about the produced particles
 
-#/run/beamOn 350
-/run/beamOn 10000
+/run/beamOn 350
+#/run/beamOn 10000
 
