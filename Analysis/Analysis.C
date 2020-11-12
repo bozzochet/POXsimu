@@ -483,7 +483,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
     {
       int _nHits = hReader->GetNHits("siTileLog"); //Number of hit siLayers for current event
       for (int iHit = 0; iHit < _nHits; iHit++) {
-	thisHit = hReader->GetHit("siTileLog", iHit);
+	thisHit = static_cast<GGSTIntHit*>(hReader->GetHit("siTileLog", iHit));
 	vTIntHit.push_back(thisHit);
       }
       nHits += _nHits;
@@ -492,7 +492,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
       {
         int _nHits = hReader->GetNHits("siAMSTileLog"); //Number of hit siLayers for current event
         for (int iHit = 0; iHit < _nHits; iHit++) {
-          thisHit = hReader->GetHit("siAMSTileLog", iHit);
+          thisHit = static_cast<GGSTIntHit*>(hReader->GetHit("siAMSTileLog", iHit));
           vTIntHit.push_back(thisHit);
         }
         nHits += _nHits;
@@ -500,7 +500,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
       {
         int _nHits = hReader->GetNHits("siDAMPETileLog"); //Number of hit siLayers for current event
         for (int iHit = 0; iHit < _nHits; iHit++) {
-          thisHit = hReader->GetHit("siDAMPETileLog", iHit);
+          thisHit = static_cast<GGSTIntHit*>(hReader->GetHit("siDAMPETileLog", iHit));
           vTIntHit.push_back(thisHit);
         }
         nHits += _nHits;
@@ -580,10 +580,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
       
       for (int iPHit =0; iPHit<nPHits; iPHit++){//queste sono le vere hit particella per particella
 	nHS=0;        
-        thisPHit = thisHit->GetPartHit(iPHit);
+        thisPHit = static_cast<GGSTPartHit*>(thisHit->GetPartHit(iPHit));
 	
         if (nPHits>=2||pprod)
-          thisPHit->DumpHit();
+          thisPHit->Dump();
         
 	//        if(gEne<0 && thisPHit->parentID==0 && thisPHit->particlePdg==22){ /// primary particle hit values
 	        if(gEne<0 && thisPHit->parentID==0){ /// primary particle hit values 
