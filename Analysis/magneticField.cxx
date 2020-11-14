@@ -4,6 +4,7 @@
 #include <StateOnPlane.h>
 #include <Track.h>
 #include <TrackPoint.h>
+#include "ConstField.h"
 
 #include <MaterialEffects.h>
 #include <RKTrackRep.h>
@@ -84,20 +85,25 @@ void readFile(){
 }
 
 int main() {
-  // reading the root file
+  // reading the input root file
+  readFile();
   // init MeasurementCreator
   genfit::MeasurementCreator measurementCreator;
   // init geometry and mag. field
-  TGeoManager("Geometry", "Geane geometry"); 
-  TGeoManager::Import("~/Documents/c++/thesis/POXsimu_build/plugins()/libTestGeometry.vgm.root");
+  gSystem->Load("libGeom");
+  TGeoManager::Import("~/Documents/c++/thesis/POXsimu_build/plugins/libTestGeometry.vgm.root");
   
   TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
   TGeoUniformMagField *magField = new TGeoUniformMagField(0.,0.,0.05);
   magnet->SetField(magField);
-  //to fix like prof. Duranti said
+  // just to see the Geometry
+  TGeoVolume *world = gGeoManager->GetVolume("World");
+  world->Draw();
+  // magnetic field on all the volumes, not ok for the simulation, only for testing
+  genfit::FieldManager::getInstance()->init(new genfit::ConstField(0.,0.,15.)); // 15 kGauss
+
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
 
-  //look if you can use it sourcing them
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
@@ -114,7 +120,7 @@ int main() {
     mom.SetTheta(TMath::ACos(zMom[iEvent] / mom.Mag() ));
     
     // helix track model    
-    //get the charge of the particle
+    // get the charge of the particle
     const double charge = TDatabasePDG::Instance()->GetParticle(PDG[iEvent])->Charge()/(3.);
     genfit::HelixTrackModel* helix = new genfit::HelixTrackModel(pos, mom, charge);
     measurementCreator.setTrackModel(helix);
@@ -124,11 +130,10 @@ int main() {
 
 
     // smeared start values                                                                                                                                                            
-    const bool smearPosMom = true;     // init the Reps with smeared pos and mom                                                                                                       
-    const double posSmear = 0.1;     // cm                                                                                                                                             
-    const double momSmear = 3. /180.*TMath::Pi();     // rad                                                                                                                           
-    const double momMagSmear = 0.1;   // relative                                                                                                                                      
-
+    const bool smearPosMom = true;     // init the Reps with smeared pos and mom         
+    const double posSmear = 0.1;     // cm                                               
+    const double momSmear = 3. /180.*TMath::Pi();     // rad                             
+    const double momMagSmear = 0.1;   // relative                                          
     TVector3 posM(pos);
     TVector3 momM(mom);
     if (smearPosMom) {
@@ -140,7 +145,8 @@ int main() {
       momM.SetTheta(gRandom->Gaus(mom.Theta(),momSmear));
       momM.SetMag(gRandom->Gaus(mom.Mag(), momMagSmear*mom.Mag()));
     }
-    // approximate covariance                                                                                                                                                          
+
+    // approximate covariance
     TMatrixDSym covM(6);
     double resolution = 0.01;
     for (int i = 0; i < 3; ++i)
@@ -161,7 +167,7 @@ int main() {
     stateSmeared.get6DStateCov(seedState, seedCov);
     genfit::Track fitTrack(rep, seedState, seedCov);
 
-        // create random measurement types
+    // create random measurement types
     std::vector<genfit::eMeasurementType> measurementTypes;
     for (unsigned int i = 0; i < nMeasurements; ++i)
       measurementTypes.push_back(genfit::eMeasurementType(gRandom->Uniform(8)));
@@ -194,8 +200,6 @@ int main() {
       // add track to event display
       display->addEvent(&fitTrack);
     }
-
-
 
   }// end loop over events
 

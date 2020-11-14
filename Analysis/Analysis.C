@@ -514,7 +514,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
     float totEDep = 0.;   
    
     // // efficiency calc
-    bool pprod=false; 
+
+    //FRAPASCO MODIFICATION: setted as true to test with muons
+    bool pprod=true;
+    //bool pprod=false; 
 
     // true Y bending
     //double mom=1.;  // mom in GV (not geant4 ene)
