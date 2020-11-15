@@ -88,3 +88,21 @@ set_target_properties(GenFitMinimalExample PROPERTIES
 				     )
 
 install(TARGETS GenFitMinimalExample DESTINATION "${INSTALL_BIN_DIR}")
+
+##################################################################
+
+set(magneticField_SRC
+	magneticField.cxx
+)
+
+add_executable(magneticField ${magneticField_SRC})
+target_link_libraries(magneticField
+	${GENFIT_LIBRARY}
+	${ROOT_LIBRARIES}
+)
+
+set_target_properties(magneticField PROPERTIES
+				     RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
+				     )
+
+install(TARGETS magneticField DESTINATION "${INSTALL_BIN_DIR}")
