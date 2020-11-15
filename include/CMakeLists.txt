@@ -3,7 +3,13 @@ set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${includ
 
 configure_file(DetectorConstruction.hh DetectorConstruction.hh COPYONLY)
 
-install(FILES
-  DetectorConstruction.hh
-  DESTINATION "${INSTALL_INC_DIR}"
-  )
+#install(FILES
+#  DetectorConstruction.hh
+#  DESTINATION "${INSTALL_INC_DIR}"
+#  )
+
+install(DIRECTORY . DESTINATION include
+       USE_SOURCE_PERMISSIONS
+       PATTERN *~ EXCLUDE
+       PATTERN "CMakeLists.txt" EXCLUDE
+       )

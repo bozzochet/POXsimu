@@ -21,7 +21,6 @@ set_target_properties(TestGeometry PROPERTIES
 		      LIBRARY_OUTPUT_DIRECTORY "${LIB_DIR}"
 		      )
 
-set_target_properties(TestGeometry PROPERTIES VERSION 1)
 if (APPLE)
 #    set_property(TARGET TestGeometry PROPERTY PREFIX "lib")
 #    set_property(TARGET TestGeometry PROPERTY OUTPUT_NAME "TestGeometry.so")
