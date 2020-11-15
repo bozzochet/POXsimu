@@ -20,10 +20,14 @@
 #include <TGeoManager.h>
 #include <TRandom.h>
 #include <TVector3.h>
-#include <vector>
-
-#include "TDatabasePDG.h"
 #include <TMath.h>
+#include <TLorentzVector.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TSystem.h>
+#include <TVirtualMagField.h>
+
+#include <vector>
 
 struct event{
   double Z;
@@ -92,7 +96,7 @@ int main() {
   // init MeasurementCreator
   genfit::MeasurementCreator measurementCreator;
   // init geometry and mag. field
-  gSystem->Load("libGeom");
+  //  gSystem->Load("libGeom");
   //  TGeoManager::Import("~/Documents/c++/thesis/POXsimu_build/plugins/libTestGeometry.vgm.root");
   TGeoManager::Import("plugins/libTestGeometry.vgm.root");
   
