@@ -29,6 +29,7 @@
 
 #include <vector>
 
+/*
 struct event{
   double Z;
   double XorY;
@@ -46,53 +47,74 @@ struct event{
     return;
   }
 };
-
-const int nHitsMax = 1000;
-int evID=-9999;
-int nHits=0;
-int nTotalHits=0;
-Double_t xCoord[nHitsMax]={-9999.};
-Double_t yCoord[nHitsMax]={-9999.};
-Double_t zCoord[nHitsMax]={-9999.};
-Double_t xMom[nHitsMax]={-9999.};
-Double_t yMom[nHitsMax]={-9999.};
-Double_t zMom[nHitsMax]={-9999.};
-Double_t eDep[nHitsMax]={-9999.};
-Double_t eEne[nHitsMax]={-9999.};
-int PDG[nHitsMax]={0};
-int TrID[nHitsMax]={-1};
-int ParID[nHitsMax]={-1};
-int nEvs=0;
-
-void readFile(){
-  
-  TString inputFileName="anaOut.root";
-  TFile *inFile=new TFile(inputFileName,"READ");
-
-  TTree *T=(TTree*)inFile->Get("hitTree");
-
-  T->SetBranchAddress( "evID", &evID );
-  T->SetBranchAddress( "nHits", &nHits );
-  T->SetBranchAddress( "nTotalHits", &nTotalHits );
-  T->SetBranchAddress( "xCoord", &xCoord );
-  T->SetBranchAddress( "yCoord", &yCoord );
-  T->SetBranchAddress( "zCoord", &zCoord );
-  T->SetBranchAddress( "xMom", &xMom );
-  T->SetBranchAddress( "yMom", &yMom );
-  T->SetBranchAddress( "zMom", &zMom );
-  T->SetBranchAddress( "eEne", &eEne );
-  T->SetBranchAddress( "eDep", &eDep );
-  T->SetBranchAddress( "PDG", &PDG );
-  T->SetBranchAddress( "TrID", &TrID );
-  T->SetBranchAddress( "ParID", &ParID );
-
-  nEvs=T->GetEntries();
-  std::cout<<"got "<<nEvs<<" muons"<<std::endl;
-}
+*/
 
 int main() {
-  // reading the input root file
-  readFile();
+
+  // reading the input root file ----------------------
+  TString inputFileName="anaOut.root";
+  TFile *inFile=new TFile(inputFileName,"READ");
+  
+  TTree *hitTree=(TTree*)inFile->Get("hitTree");
+  
+  //Declaration of leaves types
+  Int_t           evID;
+  Int_t           nHits;
+  Int_t           nTotalHits;
+  Int_t           ppHit;
+  Int_t           hVol[12];
+  Double_t        hVolZ[12];
+  Double_t        xCoord[12];
+  Double_t        yCoord[12];
+  Double_t        zCoord[12];
+  Double_t        eDep[12];
+  Int_t           PDG[12];
+  Int_t           TrID[12];
+  Int_t           ParID[12];
+  Double_t        xMom[12];
+  Double_t        yMom[12];
+  Double_t        zMom[12];
+  Double_t        eEne[12];
+  Int_t           chXY[12];
+  Int_t           hitStrips[12];
+  Int_t           simStrips[12];
+  // std::vector<int>     hitChan;
+  // std::vector<double>  hitDep;
+  // std::vector<int>     simChan;
+  // std::vector<double>  simDep;
+  
+  // Set branch addresses.
+  hitTree->SetBranchAddress("evID",&evID);
+  hitTree->SetBranchAddress("nHits",&nHits);
+  hitTree->SetBranchAddress("nTotalHits",&nTotalHits);
+  hitTree->SetBranchAddress("ppHit",&ppHit);
+  hitTree->SetBranchAddress("hVol",hVol);
+  hitTree->SetBranchAddress("hVolZ",hVolZ);
+  hitTree->SetBranchAddress("xCoord",xCoord);
+  hitTree->SetBranchAddress("yCoord",yCoord);
+  hitTree->SetBranchAddress("zCoord",zCoord);
+  hitTree->SetBranchAddress("eDep",eDep);
+  hitTree->SetBranchAddress("PDG",PDG);
+  hitTree->SetBranchAddress("TrID",TrID);
+  hitTree->SetBranchAddress("ParID",ParID);
+  hitTree->SetBranchAddress("xMom",xMom);
+  hitTree->SetBranchAddress("yMom",yMom);
+  hitTree->SetBranchAddress("zMom",zMom);
+  hitTree->SetBranchAddress("eEne",eEne);
+  hitTree->SetBranchAddress("chXY",chXY);
+  hitTree->SetBranchAddress("hitStrips",hitStrips);
+  hitTree->SetBranchAddress("simStrips",simStrips);
+  // hitTree->SetBranchAddress("hitChan",&hitChan);
+  // hitTree->SetBranchAddress("hitDep",&hitDep);
+  // hitTree->SetBranchAddress("simChan",&simChan);
+  // hitTree->SetBranchAddress("simDep",&simDep);
+    
+  Long64_t nentries = hitTree->GetEntries();
+  std::cout<<"got "<<nentries<<" events"<<std::endl;
+  Long64_t nbytes = 0;    
+
+  //--------------------------------------------------------
+  
   // init MeasurementCreator
   genfit::MeasurementCreator measurementCreator;
   // init geometry and mag. field
@@ -100,41 +122,42 @@ int main() {
   //  TGeoManager::Import("~/Documents/c++/thesis/POXsimu_build/plugins/libTestGeometry.vgm.root");
   TGeoManager::Import("plugins/libTestGeometry.vgm.root");
   
-  TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
-  TGeoUniformMagField *magField = new TGeoUniformMagField(0.,0.,0.05);
-  magnet->SetField(magField);
+  // TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
+  // magnet->SetField(new genfit::ConstField(0.,0.,0.5));//0.5 kGauss = 0.05T
   // just to see the Geometry
-  TGeoVolume *world = gGeoManager->GetVolume("World");
-  world->Draw();
-  // magnetic field on all the volumes, not ok for the simulation, only for testing
+  //  TGeoVolume *world = gGeoManager->GetVolume("World");
+  //  world->Draw();
+  //  magnetic field on all the volumes, not ok for the simulation, only for testing
   genfit::FieldManager::getInstance()->init(new genfit::ConstField(0.,0.,15.)); // 15 kGauss
 
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
 
-  genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
+  //  genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
   // main loop (loops on the events)
-  for (unsigned int iEvent=0; iEvent < nEvs; iEvent++){
+  for (Long64_t iEvent=0; iEvent<nentries; iEvent++) {
+    nbytes += hitTree->GetEntry(iEvent);
+      
     // true start values                                      
     TVector3 pos(0, 0, 0);
-    pos.SetX(xCoord[iEvent]);
-    pos.SetY(yCoord[iEvent]);
-    pos.SetZ(zCoord[iEvent]);
+    pos.SetX(xCoord[0]);
+    pos.SetY(yCoord[0]);
+    pos.SetZ(zCoord[0]);
     TVector3 mom(1.,0,0);
-    mom.SetPhi(TMath::ATan(xMom[iEvent] / yMom[iEvent]));
-    mom.SetMag(TMath::Sqrt( TMath::Power(xMom[iEvent],2) + TMath::Power(yMom[iEvent],2) + TMath::Power(zMom[iEvent],2)));
-    mom.SetTheta(TMath::ACos(zMom[iEvent] / mom.Mag() ));
+    mom.SetPhi(TMath::ATan2(xMom[0], yMom[0]));
+    mom.SetMag(TMath::Sqrt( TMath::Power(xMom[0],2) + TMath::Power(yMom[0],2) + TMath::Power(zMom[0],2)));
+    mom.SetTheta(TMath::ACos(zMom[0]/mom.Mag()));
     
     // helix track model    
     // get the charge of the particle
-    const double charge = TDatabasePDG::Instance()->GetParticle(PDG[iEvent])->Charge()/(3.);
+    const double charge = TDatabasePDG::Instance()->GetParticle(PDG[0])->Charge()/(3.);
+    // TDatabasePDG::Instance()->GetParticle(PDG[0])->Dump();
+    // printf("%d %f\n", PDG[0], TDatabasePDG::Instance()->GetParticle(PDG[0])->Charge());
     genfit::HelixTrackModel* helix = new genfit::HelixTrackModel(pos, mom, charge);
     measurementCreator.setTrackModel(helix);
 
-
     unsigned int nMeasurements = gRandom->Uniform(5, 15);
-
 
     // smeared start values                                                                                                                                                            
     const bool smearPosMom = true;     // init the Reps with smeared pos and mom         
@@ -162,7 +185,7 @@ int main() {
       covM(i,i) = TMath::Power(resolution / nMeasurements / sqrt(3), 2);
 
     // trackrep
-    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(PDG[iEvent]);
+    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(PDG[0]);
 
     // smeared start state
     genfit::MeasuredStateOnPlane stateSmeared(rep);
@@ -203,17 +226,17 @@ int main() {
     fitTrack.checkConsistency();
 
 
-    if (iEvent < 1000) {
-      // add track to event display
-      display->addEvent(&fitTrack);
-    }
+    // if (iEvent < 1000) {
+    //   // add track to event display
+    //   display->addEvent(&fitTrack);
+    // }
 
   }// end loop over events
 
   delete fitter;
 
   // open event display
-  display->open();
+  //  display->open();
 
 }
 
