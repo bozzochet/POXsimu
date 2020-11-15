@@ -30,8 +30,10 @@ set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${includ
 
 set(INC_DIR "${CMAKE_BINARY_DIR}/include")
 set(LIB_DIR "${CMAKE_BINARY_DIR}/plugins")
+set(BIN_DIR "${CMAKE_BINARY_DIR}/exe")
 set(INSTALL_INC_DIR "include")
 set(INSTALL_LIB_DIR "plugins")
+set(INSTALL_BIN_DIR "exe")
 
 ###############################################
 

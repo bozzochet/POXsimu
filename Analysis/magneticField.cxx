@@ -42,6 +42,7 @@ struct event{
     return;
   }
 };
+
 const int nHitsMax = 1000;
 int evID=-9999;
 int nHits=0;
@@ -58,6 +59,7 @@ int PDG[nHitsMax]={0};
 int TrID[nHitsMax]={-1};
 int ParID[nHitsMax]={-1};
 int nEvs=0;
+
 void readFile(){
   
   TString inputFileName="anaOut.root";
@@ -91,7 +93,8 @@ int main() {
   genfit::MeasurementCreator measurementCreator;
   // init geometry and mag. field
   gSystem->Load("libGeom");
-  TGeoManager::Import("~/Documents/c++/thesis/POXsimu_build/plugins/libTestGeometry.vgm.root");
+  //  TGeoManager::Import("~/Documents/c++/thesis/POXsimu_build/plugins/libTestGeometry.vgm.root");
+  TGeoManager::Import("plugins/libTestGeometry.vgm.root");
   
   TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
   TGeoUniformMagField *magField = new TGeoUniformMagField(0.,0.,0.05);
