@@ -49,6 +49,48 @@ struct event{
 };
 */
 
+class field: public genfit::AbsBField{
+private:
+  double field_[3];
+  TGeoVolume* magnet;
+public:
+  field(double b1, double b2, double b3, TGeoVolume* &mag) {
+    magnet = mag;
+    field_[0]=b1;
+    field_[1]=b2;
+    field_[2]=b3;
+  };
+  ~field(){};
+  inline TVector3 get(const TVector3& v) const {
+    double x = v.x();
+    double y = v.y();
+    double z = v.z();
+    double Bx;
+    double By;
+    double Bz;
+    get(x, y, z, Bx, By, Bz);
+    return TVector3(Bx, By, Bz);
+  }
+  inline void get(const double& x, const double& y, const double& z, double& Bx, double& By, double& Bz)  const { 
+    double Point[3] = {x, y, z};
+    double Bfield[3];
+    if(magnet->Contains(Point)){
+      Bfield[0]=field_[0];
+      Bfield[1]=field_[1];
+      Bfield[2]=field_[2];
+    }else{
+      Bfield[0]=0.;
+      Bfield[1]=0.;
+      Bfield[2]=0.;
+    }
+    
+    Bx = Bfield[0];
+    By = Bfield[1];
+    Bz = Bfield[2]; 
+  }
+};
+
+
 int main() {
 
   // reading the input root file ----------------------
@@ -118,24 +160,21 @@ int main() {
   // init MeasurementCreator
   genfit::MeasurementCreator measurementCreator;
   // init geometry and mag. field
-  //  gSystem->Load("libGeom");
-  //  TGeoManager::Import("~/Documents/c++/thesis/POXsimu_build/plugins/libTestGeometry.vgm.root");
+  // gSystem->Load("libGeom");
   TGeoManager::Import("plugins/libTestGeometry.vgm.root");
   
-  // TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
-  // magnet->SetField(new genfit::ConstField(0.,0.,0.5));//0.5 kGauss = 0.05T
-  // just to see the Geometry
-  //  TGeoVolume *world = gGeoManager->GetVolume("World");
-  //  world->Draw();
-  //  magnetic field on all the volumes, not ok for the simulation, only for testing
-  genfit::FieldManager::getInstance()->init(new genfit::ConstField(0.,0.,15.)); // 15 kGauss
+  TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
+  // magnetic field on all the volumes, not ok for the simulation, only for testing
+  
+  genfit::FieldManager::getInstance()->init(new field(0., 0., 0.5, magnet ));//0.5 kGauss = 0.05T   
 
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
 
-  //  genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
+  genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
   // main loop (loops on the events)
+  
   for (Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
       
@@ -146,7 +185,7 @@ int main() {
     pos.SetZ(zCoord[0]);
     TVector3 mom(1.,0,0);
     mom.SetPhi(TMath::ATan2(xMom[0], yMom[0]));
-    mom.SetMag(TMath::Sqrt( TMath::Power(xMom[0],2) + TMath::Power(yMom[0],2) + TMath::Power(zMom[0],2)));
+    mom.SetMag(1+TMath::Sqrt( TMath::Power(xMom[0],2) + TMath::Power(yMom[0],2) + TMath::Power(zMom[0],2)));
     mom.SetTheta(TMath::ACos(zMom[0]/mom.Mag()));
     
     // helix track model    
@@ -226,17 +265,17 @@ int main() {
     fitTrack.checkConsistency();
 
 
-    // if (iEvent < 1000) {
-    //   // add track to event display
-    //   display->addEvent(&fitTrack);
-    // }
+  if (iEvent < 1000) {
+     // add track to event display
+     display->addEvent(&fitTrack);
+  }
 
   }// end loop over events
-
+  
   delete fitter;
 
   // open event display
-  //  display->open();
+  display->open();
 
 }
 
