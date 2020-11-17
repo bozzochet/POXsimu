@@ -153,8 +153,7 @@ int main() {
     
   Long64_t nentries = hitTree->GetEntries();
   std::cout<<"got "<<nentries<<" events"<<std::endl;
-  Long64_t nbytes = 0;    
-
+  Long64_t nbytes = 0;
   //--------------------------------------------------------
   
   // init MeasurementCreator
@@ -174,19 +173,26 @@ int main() {
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
   // main loop (loops on the events)
-  
+  /*  
   for (Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
       
     // true start values                                      
     TVector3 pos(0, 0, 0);
-    pos.SetX(xCoord[0]);
-    pos.SetY(yCoord[0]);
-    pos.SetZ(zCoord[0]);
+    // checking the first layer of the spectrometer with hit
     TVector3 mom(1.,0,0);
-    mom.SetPhi(TMath::ATan2(xMom[0], yMom[0]));
-    mom.SetMag(1+TMath::Sqrt( TMath::Power(xMom[0],2) + TMath::Power(yMom[0],2) + TMath::Power(zMom[0],2)));
-    mom.SetTheta(TMath::ACos(zMom[0]/mom.Mag()));
+    for(int s=10;s<12;s++){
+      std::cout<<xMom[s]<<std::endl;
+      if((xCoord[s] != 0)&&(yCoord[s] != 0)){
+	pos.SetX(xCoord[s]);
+	pos.SetY(yCoord[s]);
+	pos.SetZ(zCoord[s]);
+	mom.SetPhi(TMath::ATan2(xMom[s], yMom[s]));
+	mom.SetMag(TMath::Sqrt( TMath::Power(xMom[s],2) + TMath::Power(yMom[s],2) + TMath::Power(zMom[s],2)));
+	mom.SetTheta(TMath::ACos(zMom[s]/mom.Mag()));
+	break;
+      }
+    }
     
     // helix track model    
     // get the charge of the particle
@@ -271,7 +277,106 @@ int main() {
   }
 
   }// end loop over events
-  
+  */
+   for (unsigned int iEvent=0; iEvent<100; ++iEvent){
+
+    // true start values
+    TVector3 pos(0, 0, 0);
+    TVector3 mom(1.,0,0);
+    mom.SetPhi(gRandom->Uniform(0.,2*TMath::Pi()));
+    mom.SetTheta(gRandom->Uniform(0.4*TMath::Pi(),0.6*TMath::Pi()));
+    mom.SetMag(gRandom->Uniform(0.2, 1.));
+
+
+    // helix track model
+    const int pdg = 13;               // particle pdg code
+    const double charge = TDatabasePDG::Instance()->GetParticle(pdg)->Charge()/(3.);
+    genfit::HelixTrackModel* helix = new genfit::HelixTrackModel(pos, mom, charge);
+    measurementCreator.setTrackModel(helix);
+
+
+    unsigned int nMeasurements = gRandom->Uniform(5, 15);
+
+
+    // smeared start values
+    const bool smearPosMom = true;     // init the Reps with smeared pos and mom
+    const double posSmear = 0.1;     // cm
+    const double momSmear = 3. /180.*TMath::Pi();     // rad
+    const double momMagSmear = 0.1;   // relative
+
+    TVector3 posM(pos);
+    TVector3 momM(mom);
+    if (smearPosMom) {
+      posM.SetX(gRandom->Gaus(posM.X(),posSmear));
+      posM.SetY(gRandom->Gaus(posM.Y(),posSmear));
+      posM.SetZ(gRandom->Gaus(posM.Z(),posSmear));
+
+      momM.SetPhi(gRandom->Gaus(mom.Phi(),momSmear));
+      momM.SetTheta(gRandom->Gaus(mom.Theta(),momSmear));
+      momM.SetMag(gRandom->Gaus(mom.Mag(), momMagSmear*mom.Mag()));
+    }
+    // approximate covariance
+    TMatrixDSym covM(6);
+    double resolution = 0.01;
+    for (int i = 0; i < 3; ++i)
+      covM(i,i) = resolution*resolution;
+    for (int i = 3; i < 6; ++i)
+      covM(i,i) = pow(resolution / nMeasurements / sqrt(3), 2);
+
+
+    // trackrep
+    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pdg);
+
+    // smeared start state
+    genfit::MeasuredStateOnPlane stateSmeared(rep);
+    stateSmeared.setPosMomCov(posM, momM, covM);
+
+
+    // create track
+    TVectorD seedState(6);
+    TMatrixDSym seedCov(6);
+    stateSmeared.get6DStateCov(seedState, seedCov);
+    genfit::Track fitTrack(rep, seedState, seedCov);
+
+
+    // create random measurement types
+    std::vector<genfit::eMeasurementType> measurementTypes;
+    for (unsigned int i = 0; i < nMeasurements; ++i)
+      measurementTypes.push_back(genfit::eMeasurementType(gRandom->Uniform(8)));
+
+
+    // create smeared measurements and add to track
+    try{
+      for (unsigned int i=0; i<measurementTypes.size(); ++i){
+        std::vector<genfit::AbsMeasurement*> measurements = measurementCreator.create(measurementTypes[i], i*5.);
+        fitTrack.insertPoint(new genfit::TrackPoint(measurements, &fitTrack));
+      }
+    }
+    catch(genfit::Exception& e){
+      std::cerr<<"Exception, next track"<<std::endl;
+      std::cerr << e.what();
+      continue;
+    }
+
+    //check
+    fitTrack.checkConsistency();
+
+    // do the fit
+    fitter->processTrack(&fitTrack);
+
+    //check
+    fitTrack.checkConsistency();
+
+
+    if (iEvent < 1000) {
+      // add track to event display
+      display->addEvent(&fitTrack);
+    }
+
+
+
+  }// end loop over events
+
   delete fitter;
 
   // open event display
