@@ -66,9 +66,9 @@ link_directories(${GENFIT_LIBRARY_DIR})
 
 INCLUDE_DIRECTORIES(
                 BEFORE
-                ${ROOT_INCLUDE_DIRS}
+                SYSTEM ${ROOT_INCLUDE_DIRS}
                 SYSTEM ${EIGEN3_INCLUDE_DIR}
-                ${GF_INC_DIRS}
+                SYSTEM ${GF_INC_DIRS}
 		)
 
 ###################################################################

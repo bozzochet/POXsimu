@@ -175,12 +175,11 @@ int main() {
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
   genfit::MeasurementFactory<genfit::PlanarMeasurement> *measFact = new genfit::MeasurementFactory<genfit::PlanarMeasurement>();
-  
+
   // main loop (loops on the events)  
   for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
-
-    
+  
     // start values
     
     // declaration of the variables
@@ -188,16 +187,18 @@ int main() {
     int PDGid;
     TVector3 pos, mom;
     int nMeasurements = 0,index = 0;
-    genfit::TrackCandHit* hit;
+    //    genfit::TrackCandHit* hit;
     //std::vector<genfit::eMeasurementType> measurementTypes;
 
     // what is it???
-    TClonesArray *data = new TClonesArray();
+    TClonesArray *data = new TClonesArray(TClass::GetClass<HitCheRiempiTu>, 12);//size massima
 
+    genfit::TrackCand trackHits;// = new genfit::TrackCand();
+    
     // loop on the measurements for each event
     for(int s=0;s<12;s++){
-      if((xCoord[s] != 0)&&(yCoord[s] != 0)){ // hit is on both x and y
-	if(!filled){
+      if((xCoord[s] != 0)&&(yCoord[s] != 0)){ // hit is on both x and y //no, assolutamente no
+	if(!filled){// ma perchè? così riempi solo il primo, no?
 	  pos.SetX(xCoord[s]);
 	  pos.SetY(yCoord[s]);
 	  pos.SetZ(zCoord[s]);
@@ -214,15 +215,16 @@ int main() {
 	}
 	// filling the data cluster to create the measurement
 	hit = new genfit::TrackCandHit(evID,s,hVol[s],0.);
-	genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement> *prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>(data);
-	measFact->addProducer(prod);
+	trackHits.addHit(hit);
+	//	genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement> *prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>(data);
+	//	measFact->addProducer(detID, prod);
 	
 	nMeasurements++;
       }
     }
 
     // getting the charge of the particle
-    const double charge = TDatabasePDG::Instance()->GetParticle(PDGid)->Charge()/(3.);
+    const double charge = TDatabasePDG::Instance()->GetParticle(PDGid)->Charge()/(3.);//questa in realtà non è corretta: quando fai il fit NON lo sai che particella era: sei tu che lo "assumi"... Però vabè è un dettaglio.
 	  
     // helix track model    
     // get the charge of the particle
@@ -238,7 +240,7 @@ int main() {
       covM(i,i) = TMath::Power(resolution / nMeasurements / sqrt(3), 2);
 
     // trackrep
-    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(PDGid);
+    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(PDGid);//stesso commento di sopra sulla carica...
       
     // smeared start state
     genfit::MeasuredStateOnPlane stateSmeared(rep);
@@ -250,13 +252,10 @@ int main() {
     stateSmeared.get6DStateCov(seedState, seedCov);
     genfit::Track fitTrack(rep, seedState, seedCov);
 
-    genfit::TrackCand trackHits;// = new genfit::TrackCand();
-    trackHits.addHit(hit);
+    std::vector<genfit::PlanarMeasurement*> measurements = measFact->createMany(trackHits);
     
     try{
-
       for (unsigned int i=0; i<nMeasurements; ++i){
-      std::vector<genfit::PlanarMeasurement*> measurements = measFact->createMany(trackHits);
         fitTrack.insertPoint(new genfit::TrackPoint(measurements, &fitTrack));
       }
     }
