@@ -187,11 +187,14 @@ int main() {
     int PDGid;
     TVector3 pos, mom;
     int nMeasurements = 0,index = 0;
-    //    genfit::TrackCandHit* hit;
+    genfit::TrackCandHit* hit;
     //std::vector<genfit::eMeasurementType> measurementTypes;
-
-    // what is it???
-    TClonesArray *data = new TClonesArray(TClass::GetClass<HitCheRiempiTu>, 12);//size massima
+    
+    //a tutti questi che gli fai new toccherà fargli un delete... Oppure li fai senza il new...
+    TClonesArray data("genfit::AbsMeasurement", 12);//size massima. 
+    genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>* prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>(data);
+    int detID=5;//?
+    measFact->addProducer(detID, prod);//così?
 
     genfit::TrackCand trackHits;// = new genfit::TrackCand();
     
@@ -216,8 +219,10 @@ int main() {
 	// filling the data cluster to create the measurement
 	hit = new genfit::TrackCandHit(evID,s,hVol[s],0.);
 	trackHits.addHit(hit);
-	//	genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement> *prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>(data);
-	//	measFact->addProducer(detID, prod);
+	data[s] = new genfit::AbsMeasurement();//vedi https://root.cern.ch/doc/master/classTClonesArray.html
+	((genfit::AbsMeasurement *)data[s])->setRawHitCoords(pos);
+	// data[s]->setDetId(?);
+	// data[s]->setHitId(s?);
 	
 	nMeasurements++;
       }
