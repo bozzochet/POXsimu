@@ -213,10 +213,10 @@ int main() {
 	  filled=true;
 	}
 	// filling the data cluster to create the measurement
-	/*hit = new genfit::TrackCandHit(evID,s,hVol[s],0.);
+	hit = new genfit::TrackCandHit(evID,s,hVol[s],0.);
 	genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement> *prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>(data);
 	measFact->addProducer(prod);
-	*/
+	
 	nMeasurements++;
       }
     }
