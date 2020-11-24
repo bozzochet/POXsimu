@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <Exception.h>
 #include <FieldManager.h>
 #include <KalmanFitterRefTrack.h>
@@ -5,19 +7,17 @@
 #include <Track.h>
 #include <TrackCand.h>
 #include <TrackPoint.h>
-#include "ConstField.h"
-
 #include <MaterialEffects.h>
 #include <RKTrackRep.h>
-#include <TGeoMaterialInterface.h>
 #include <PlanarMeasurement.h>
+#include <mySpacepointMeasurement.h>
 #include <MeasurementFactory.h>
 #include <EventDisplay.h>
-
 #include <HelixTrackModel.h>
 #include <MeasurementCreator.h>
 
 #include <TDatabasePDG.h>
+#include <TGeoMaterialInterface.h>
 #include <TEveManager.h>
 #include <TGeoManager.h>
 #include <TRandom.h>
@@ -29,28 +29,6 @@
 #include <TSystem.h>
 #include <TVirtualMagField.h>
 #include <TClonesArray.h>
-
-#include <vector>
-
-/*
-struct event{
-  double Z;
-  double XorY;
-  int PDG;
-  int TrID;
-  int ParID;
-  TLorentzVector Mom;
-  void operator=(event h){
-    Z=h.Z;
-    XorY=h.XorY;
-    Mom=h.Mom;
-    PDG=h.PDG;
-    TrID=h.TrID;
-    ParID=h.ParID;
-    return;
-  }
-};
-*/
 
 class field: public genfit::AbsBField{
 private:
@@ -107,22 +85,22 @@ int main() {
   Int_t           nHits;
   Int_t           nTotalHits;
   Int_t           ppHit;
-  Int_t           hVol[12];
-  Double_t        hVolZ[12];
-  Double_t        xCoord[12];
-  Double_t        yCoord[12];
-  Double_t        zCoord[12];
-  Double_t        eDep[12];
-  Int_t           PDG[12];
-  Int_t           TrID[12];
-  Int_t           ParID[12];
-  Double_t        xMom[12];
-  Double_t        yMom[12];
-  Double_t        zMom[12];
-  Double_t        eEne[12];
-  Int_t           chXY[12];
-  Int_t           hitStrips[12];
-  Int_t           simStrips[12];
+  Int_t           hVol[19];
+  Double_t        hVolZ[19];
+  Double_t        xCoord[19];
+  Double_t        yCoord[19];
+  Double_t        zCoord[19];
+  Double_t        eDep[19];
+  Int_t           PDG[19];
+  Int_t           TrID[19];
+  Int_t           ParID[19];
+  Double_t        xMom[19];
+  Double_t        yMom[19];
+  Double_t        zMom[19];
+  Double_t        eEne[19];
+  Int_t           chXY[19];
+  Int_t           hitStrips[19];
+  Int_t           simStrips[19];
   // std::vector<int>     hitChan;
   // std::vector<double>  hitDep;
   // std::vector<int>     simChan;
@@ -184,72 +162,60 @@ int main() {
     
     // declaration of the variables
     bool filled = false;
-    int PDGid;
-    TVector3 pos, mom;
-    int nMeasurements = 0,index = 0;
+    std::vector<TVector3> pos, mom;
+    unsigned int nMeasurements = 0;
+    int index = 0;
     genfit::TrackCandHit* hit;
     //std::vector<genfit::eMeasurementType> measurementTypes;
     
     //a tutti questi che gli fai new toccherà fargli un delete... Oppure li fai senza il new...
-    TClonesArray data("genfit::AbsMeasurement", 12);//size massima. 
-    genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>* prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>(data);
+    TClonesArray *data = new TClonesArray("genfit::mySpacepointMeasurement", 19);//size massima. 
+    genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement> *prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::PlanarMeasurement>(data);
     int detID=5;//?
-    measFact->addProducer(detID, prod);//così?
-
+    TMatrixDSym covM(6);
+    genfit::mySpacepointMeasurement* planMeas;
     genfit::TrackCand trackHits;// = new genfit::TrackCand();
-    
+    TVector3 posTemp,momTemp;
     // loop on the measurements for each event
-    for(int s=0;s<12;s++){
-      if((xCoord[s] != 0)&&(yCoord[s] != 0)){ // hit is on both x and y //no, assolutamente no
+    for(int s=0;s<19;s++){
+      if(true){ // hit is on both x and y //no, assolutamente no
 	if(!filled){// ma perchè? così riempi solo il primo, no?
-	  pos.SetX(xCoord[s]);
-	  pos.SetY(yCoord[s]);
-	  pos.SetZ(zCoord[s]);
-	  mom.SetPhi(TMath::ATan2(xMom[s], yMom[s]));
-	  mom.SetMag(TMath::Sqrt( TMath::Power(xMom[s],2) + TMath::Power(yMom[s],2) + TMath::Power(zMom[s],2)));
-	  mom.SetTheta(TMath::ACos(zMom[s]/mom.Mag()));
 	  index=s;
-	  PDGid=PDG[s];
-	  // uncomment for further information on the particle
-	       // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
-	       // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
-    
 	  filled=true;
 	}
+	posTemp.SetX(xCoord[s]);
+	posTemp.SetY(yCoord[s]);
+	posTemp.SetZ(zCoord[s]);
+	momTemp.SetPhi(TMath::ATan2(xMom[s], yMom[s]));
+	momTemp.SetMag(TMath::Sqrt( TMath::Power(xMom[s],2) + TMath::Power(yMom[s],2) + TMath::Power(zMom[s],2)));
+	momTemp.SetTheta(TMath::ACos(zMom[s]/momTemp.Mag()));
+	// uncomment for further information on the particle
+	      // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
+	      // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
+    
 	// filling the data cluster to create the measurement
+
+	// approximate covariance
+	double resolution = 0.01;
+	for (int i = 0; i < 3; ++i)
+	  covM(i,i) = resolution*resolution;
+	for (int i = 3; i < 6; ++i)
+	  covM(i,i) = TMath::Power(resolution / nMeasurements / sqrt(3), 2);
+	
 	hit = new genfit::TrackCandHit(evID,s,hVol[s],0.);
 	trackHits.addHit(hit);
-	data[s] = new genfit::AbsMeasurement();//vedi https://root.cern.ch/doc/master/classTClonesArray.html
-	((genfit::AbsMeasurement *)data[s])->setRawHitCoords(pos);
-	// data[s]->setDetId(?);
-	// data[s]->setHitId(s?);
-	
+	planMeas = new genfit::mySpacepointMeasurement();
+	data->AddAt(planMeas,s);
 	nMeasurements++;
       }
     }
-
-    // getting the charge of the particle
-    const double charge = TDatabasePDG::Instance()->GetParticle(PDGid)->Charge()/(3.);//questa in realtà non è corretta: quando fai il fit NON lo sai che particella era: sei tu che lo "assumi"... Però vabè è un dettaglio.
-	  
-    // helix track model    
-    // get the charge of the particle
-    genfit::HelixTrackModel* helix = new genfit::HelixTrackModel(pos, mom, charge);
-    measurementCreator.setTrackModel(helix);
     
-    // approximate covariance
-    TMatrixDSym covM(6);
-    double resolution = 0.01;
-    for (int i = 0; i < 3; ++i)
-      covM(i,i) = resolution*resolution;
-    for (int i = 3; i < 6; ++i)
-      covM(i,i) = TMath::Power(resolution / nMeasurements / sqrt(3), 2);
-
     // trackrep
-    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(PDGid);//stesso commento di sopra sulla carica...
+    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(13);//stesso commento di sopra sulla carica...
       
     // smeared start state
     genfit::MeasuredStateOnPlane stateSmeared(rep);
-    stateSmeared.setPosMomCov(pos, mom, covM);
+    stateSmeared.setPosMomCov(pos[index], mom[index], covM);
 
     // create track
     TVectorD seedState(6);
@@ -257,11 +223,11 @@ int main() {
     stateSmeared.get6DStateCov(seedState, seedCov);
     genfit::Track fitTrack(rep, seedState, seedCov);
 
-    std::vector<genfit::PlanarMeasurement*> measurements = measFact->createMany(trackHits);
+    std::vector<genfit::PlanarMeasurement*> measurements = measFact->createMany(trackHits);;
     
     try{
       for (unsigned int i=0; i<nMeasurements; ++i){
-        fitTrack.insertPoint(new genfit::TrackPoint(measurements, &fitTrack));
+	fitTrack.insertPoint(new genfit::TrackPoint(measurements[i], &fitTrack));
       }
     }
     catch(genfit::Exception& e){
