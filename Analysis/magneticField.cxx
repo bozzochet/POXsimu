@@ -154,10 +154,12 @@ int main() {
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
   TClonesArray data("genfit::mySpacepointDetectorHit", 500);//size massima
-  genfit::MeasurementFactory<genfit::mySpacepointMeasurement>* measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
+  //  genfit::MeasurementFactory<genfit::mySpacepointMeasurement>* measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
+  genfit::MeasurementFactory<genfit::AbsMeasurement>* measFact = new genfit::MeasurementFactory<genfit::AbsMeasurement>();
   genfit::AbsMeasurementProducer<genfit::AbsMeasurement>* prod = new genfit::MeasurementProducer<genfit::mySpacepointDetectorHit, genfit::mySpacepointMeasurement>(&data);
   for (int ii=0; ii<19; ii++) {//ogni piano è un detector e quind un producer
-    measFact->addProducer(ii, (genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement>*)prod);
+    //    measFact->addProducer(ii, (genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement>*)prod);
+    measFact->addProducer(ii, prod);
   }
     
   // main loop (loops on the events)  
@@ -196,7 +198,8 @@ int main() {
 	nMeasurements++;
       }
     }
-    genfit::Track fitTrack(trackHits, (*((genfit::MeasurementFactory<genfit::AbsMeasurement> *)measFact)));
+    //    genfit::Track fitTrack(trackHits, (*((genfit::MeasurementFactory<genfit::AbsMeasurement> *)measFact)));
+    genfit::Track fitTrack(trackHits, *measFact);
     
     //check
     fitTrack.checkConsistency();
