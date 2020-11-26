@@ -81,29 +81,29 @@ int main() {
   
   TTree *hitTree=(TTree*)inFile->Get("hitTree");
 
-  //19 è sbajato. Deve essere nTotalHits (o MaxTotalHits=500)
+  const int MaxTotalHits=500;
   
   //Declaration of leaves types
   Int_t           evID;
   Int_t           nHits;
   Int_t           nTotalHits;
   Int_t           ppHit;
-  Int_t           hVol[nTotalHits];
-  Double_t        hVolZ[nTotalHits];
-  Double_t        xCoord[nTotalHits];
-  Double_t        yCoord[nTotalHits];
-  Double_t        zCoord[nTotalHits];
-  Double_t        eDep[nTotalHits];
-  Int_t           PDG[nTotalHits];
-  Int_t           TrID[nTotalHits];
-  Int_t           ParID[nTotalHits];
-  Double_t        xMom[nTotalHits];
-  Double_t        yMom[nTotalHits];
-  Double_t        zMom[nTotalHits];
-  Double_t        eEne[nTotalHits];
-  Int_t           chXY[nTotalHits];
-  Int_t           hitStrips[nTotalHits];
-  Int_t           simStrips[nTotalHits];
+  Int_t           hVol[MaxTotalHits];
+  Double_t        hVolZ[MaxTotalHits];
+  Double_t        xCoord[MaxTotalHits];
+  Double_t        yCoord[MaxTotalHits];
+  Double_t        zCoord[MaxTotalHits];
+  Double_t        eDep[MaxTotalHits];
+  Int_t           PDG[MaxTotalHits];
+  Int_t           TrID[MaxTotalHits];
+  Int_t           ParID[MaxTotalHits];
+  Double_t        xMom[MaxTotalHits];
+  Double_t        yMom[MaxTotalHits];
+  Double_t        zMom[MaxTotalHits];
+  Double_t        eEne[MaxTotalHits];
+  Int_t           chXY[MaxTotalHits];
+  Int_t           hitStrips[MaxTotalHits];
+  Int_t           simStrips[MaxTotalHits];
   // std::vector<int>     hitChan;
   // std::vector<double>  hitDep;
   // std::vector<int>     simChan;
@@ -153,11 +153,11 @@ int main() {
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
-  TClonesArray *data = new TClonesArray("genfit::mySpacepointDetectorHit", 500);//size massima.
-  genfit::MeasurementFactory<genfit::mySpacepointMeasurement> *measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
-  genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement> *prod = new genfit::MeasurementProducer<genfit::mySpacepointDetectorHit, genfit::mySpacepointMeasurement>(data);
+  TClonesArray data("genfit::mySpacepointDetectorHit", 500);//size massima
+  genfit::MeasurementFactory<genfit::mySpacepointMeasurement>* measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
+  genfit::AbsMeasurementProducer<genfit::AbsMeasurement>* prod = new genfit::MeasurementProducer<genfit::mySpacepointDetectorHit, genfit::mySpacepointMeasurement>(&data);
   for (int ii=0; ii<19; ii++) {//ogni piano è un detector e quind un producer
-    measFact->addProducer(ii, prod);
+    measFact->addProducer(ii, (genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement>*)prod);
   }
     
   // main loop (loops on the events)  
@@ -191,13 +191,12 @@ int main() {
 	  // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
 	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
-	trackHits.addHit(numero_piano_tirato_fuori_da_hVol, s);
+	trackHits.addHit(hVol[s], s);
 	data[s] = new genfit::mySpacepointDetectorHit(posTemp, covM);
 	nMeasurements++;
       }
     }
-    //    genfit::AbsTrackRep *rep = nullptr;//scrivendolo esplicitamente?
-    genfit::Track fitTrack(trackHits , measFact,/* rep*/);
+    genfit::Track fitTrack(trackHits, (*((genfit::MeasurementFactory<genfit::AbsMeasurement> *)measFact)));
     
     //check
     fitTrack.checkConsistency();
@@ -218,7 +217,6 @@ int main() {
   delete fitter;
   delete measFact;
   delete prod;
-  delete data;
   // open event display
   display->open();
 
