@@ -211,7 +211,7 @@ int main() {
       // add track to event display
       display->addEvent(&fitTrack);
     }
-    
+    data.delete();
   }// end loop over events
   
   delete fitter;
