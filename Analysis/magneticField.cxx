@@ -10,12 +10,10 @@
 #include <MaterialEffects.h>
 #include <RKTrackRep.h>
 #include <PlanarMeasurement.h>
-#include <mySpacepointMeasurement.h>
 #include <MeasurementFactory.h>
 #include <EventDisplay.h>
 #include <HelixTrackModel.h>
 #include <MeasurementCreator.h>
-#include <mySpacepointDetectorHit.h>
 
 #include <TDatabasePDG.h>
 #include <TGeoMaterialInterface.h>
@@ -80,6 +78,8 @@ int main() {
   TFile *inFile=new TFile(inputFileName,"READ");
   
   TTree *hitTree=(TTree*)inFile->Get("hitTree");
+
+  //19 è sbajato. Deve essere nTotalHits (o MaxTotalHits=500)
   
   //Declaration of leaves types
   Int_t           evID;
@@ -145,126 +145,78 @@ int main() {
   
   TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
   
-  genfit::FieldManager::getInstance()->init(new field(0., 0., 0.5, magnet ));//0.5 kGauss = 0.05T   
+  genfit::FieldManager::getInstance()->init(new field(0., 0., 0.5, magnet));//0.5 kGauss = 0.05T   
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
 
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
 
-  genfit::MeasurementFactory<genfit::mySpacepointMeasurement> *measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
-
+  TClonesArray *data = new TClonesArray("genfit::mySpacePointDetectorHit", 500);//size massima.
+  genfit::MeasurementFactory<genfit::mySpacepointMeasurement> *measFact = new genfit::MeasurementFactory<genfit::mySpacePointMeasurement>();
+  genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement> *prod = new genfit::MeasurementProducer<genfit::mySpacePointDetectorHit, genfit::mySpacepointMeasurement>(data);
+  for (int ii=0; ii<19; ii++) {//ogni piano è un detector e quind un producer
+    measFact->addProducer(ii, prod);
+  }
+    
   // main loop (loops on the events)  
   for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
+
+    genfit::TrackCand trackHits;// = new genfit::TrackCand();
     
     // declaration of the variables
-    bool filled = false;
-    std::vector<TVector3> pos, mom;
     unsigned int nMeasurements = 0;
-    int index = 0;
-    genfit::TrackCandHit* hit;
     
-    TClonesArray *data = new TClonesArray("genfit::mySpacepointDetectorHit", 19);//size massima.
-
+    TMatrixDSym covM(3);
+    TVector3 posTemp;
     
-    // con la classe AbsMeasurementProducer non da errore, ma così non è stata inizializzata con un TClonesArray che contiene le posizioni, come le prende? se lo creo non con la classe astratta da errore il metodo per addarlo al MeasurementFactory, se non uso il factory, ma solo il metodo produce(int index,const TrackCandHit *hit) di MeasurementProducer viene creata la Measurement con la classe astratta, quindi da errore dopo nel passarla alla traccia che poi va fittata
-    genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement> *prod;// =new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::mySpacepointMeasurement>(data);
-
-    int detID=5;
-    TMatrixDSym covM(6);
-    genfit::TrackCand trackHits;// = new genfit::TrackCand();
-    TVector3 posTemp,momTemp;
-
     // approximate covariance
     double resolution = 0.01;
-    for (int i = 0; i < 3; ++i)
-      covM(i,i) = resolution*resolution;
-    for (int i = 3; i < 6; ++i)
-      covM(i,i) = TMath::Power(resolution / nMeasurements / sqrt(3), 2);
-
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j) {
+	if (i==j) covM(i, j) = resolution*resolution;
+	else comV(i, j) = 0.0;
+      }
+    }
+    
     // loop on the measurements for each event
-    for(int s=0;s<19;s++){
+    for(int s=0;s<nTotalHits;s++){
       if(eDep[s]>0.01){// if the energy is deposited on the layer then the hit is detectable
-	if(!filled){
-	  index=s;
-	  filled=true;
-	}
 	posTemp.SetX(xCoord[s]);
 	posTemp.SetY(yCoord[s]);
 	posTemp.SetZ(zCoord[s]);
-	// non passando il momento in coordinate polari non da l'errore "TVector3 can't be stretched" ma dice comunque che il momento è zero
-	
-	momTemp.SetPhi(TMath::ATan2(yMom[s],xMom[s]));
-	std::cout<<"phi: "<<momTemp.Phi()<<std::endl;
-	momTemp.SetMag(TMath::Sqrt( TMath::Power(xMom[s],2) + TMath::Power(yMom[s],2) + TMath::Power(zMom[s],2)));
-	momTemp.SetTheta(TMath::ACos(zMom[s]/momTemp.Mag()));
-	pos.push_back(posTemp);
-	mom.push_back(momTemp);
 	// uncomment for further information on the particle
-	      // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
-	      // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
-    
-	// filling the data cluster to create the measurement	
-	hit = new genfit::TrackCandHit(s,nMeasurements,evID,0.); // detID is s because is the index that loops on the layers
-	                                                         // hitID is nMeasurements because is the counter on the detectable hits
-	trackHits.addHit(hit);
-	//	data->AddAt(new genfit::mySpacepointDetectorHit(posTemp,covM),s);
-	measFact->addProducer(s,prod);	
+	// TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
+	// printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
+	
+	trackHits.addHit(numero_piano_tirato_fuori_da_hVol, s);
+	data[s] = new genfit::mySpacepointDetectorHit(posTemp, covM);
 	nMeasurements++;
       }
     }
     
-    // trackrep
-    genfit::AbsTrackRep* rep = new genfit::RKTrackRep();//c'era il pdg ID può essere anche inizializzato senza  //stesso commento di sopra sulla carica...
-
-    //    prod = new genfit::MeasurementProducer<genfit::TrackCandHit,genfit::mySpacepointMeasurement>(data);
-
-    // smeared start state
-    genfit::MeasuredStateOnPlane stateSmeared(rep);
-    stateSmeared.setPosMomCov(pos[index], mom[index], covM);
-
-    // create track
-    TVectorD seedState(6);
-    TMatrixDSym seedCov(6);
-    stateSmeared.get6DStateCov(seedState, seedCov);
-    genfit::Track fitTrack(rep,seedState,seedCov);//trackHits,measFact,rep);
-
+    genfit::Track fitTrack(trackHits, measFact/*, rep*/);
     
-    std::vector<genfit::mySpacepointMeasurement*> measurements = measFact->createMany(trackHits);
-    
-    try{
-      for (unsigned int i=0; i<nMeasurements; ++i){
-	fitTrack.insertPoint(new genfit::TrackPoint(measurements[i], &fitTrack));
-      }
-    }
-    catch(genfit::Exception& e){
-      std::cerr<<"Exception, next track"<<std::endl;
-      std::cerr << e.what();
-      continue;
-    }
-
     //check
     fitTrack.checkConsistency();
-
+    
     // do the fit
     fitter->processTrack(&fitTrack);
-
+    
     //check
     fitTrack.checkConsistency();
     
-
     if (iEvent < 1000) {
       // add track to event display
       display->addEvent(&fitTrack);
     }
-    delete prod;
-    delete hit;
-    delete rep;
-    delete data;
+
   }// end loop over events
   
   delete fitter;
   delete measFact;
+  delete prod;
+  delete data;
   // open event display
   display->open();
 
