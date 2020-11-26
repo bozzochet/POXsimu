@@ -192,7 +192,7 @@ int main() {
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
 	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
 	trackHits.addHit(hVol[s], s);
-	data[s] = new genfit::mySpacepointDetectorHit(posTemp, covM);
+	new(data[s]) genfit::mySpacepointDetectorHit(posTemp, covM);
 	nMeasurements++;
       }
     }
@@ -211,7 +211,8 @@ int main() {
       // add track to event display
       display->addEvent(&fitTrack);
     }
-    
+
+    data.Delete();
   }// end loop over events
   
   delete fitter;
