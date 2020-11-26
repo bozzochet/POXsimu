@@ -155,8 +155,7 @@ int main() {
 
   TClonesArray *data = new TClonesArray("genfit::mySpacepointDetectorHit", 500);//size massima.
   genfit::MeasurementFactory<genfit::mySpacepointMeasurement> *measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
-  //DA SCOMMENTARE
-  genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement> *prod;// = new genfit::MeasurementProducer<genfit::mySpacepointDetectorHit, genfit::mySpacepointMeasurement>(data);
+  genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement> *prod = new genfit::MeasurementProducer<genfit::mySpacepointDetectorHit, genfit::mySpacepointMeasurement>(data);
   for (int ii=0; ii<19; ii++) {//ogni piano è un detector e quind un producer
     measFact->addProducer(ii, prod);
   }
@@ -183,7 +182,6 @@ int main() {
     }
     std::cout<<"n: "<<nTotalHits<<std::endl;
     // loop on the measurements for each event
-    //DA SCOMMENTARE
     for(int s=0;s<nTotalHits;s++){
       if(eDep[s]>0.01){// if the energy is deposited on the layer then the hit is detectable
 	posTemp.SetX(xCoord[s]);
@@ -193,16 +191,13 @@ int main() {
 	  // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
 	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
-	//DA SCOMMENTARE
-	//	trackHits.addHit(numero_piano_tirato_fuori_da_hVol, s);
-	//	data[s] = new genfit::mySpacepointDetectorHit(posTemp, covM);
+	trackHits.addHit(numero_piano_tirato_fuori_da_hVol, s);
+	data[s] = new genfit::mySpacepointDetectorHit(posTemp, covM);
 	nMeasurements++;
       }
     }
-    //DA SCOMMENTARE
-    /*    
-    genfit::AbsTrackRep *rep = nullptr;//scrivendolo esplicitamente?
-    genfit::Track fitTrack(trackHits , measFact, rep);
+    //    genfit::AbsTrackRep *rep = nullptr;//scrivendolo esplicitamente?
+    genfit::Track fitTrack(trackHits , measFact,/* rep*/);
     
     //check
     fitTrack.checkConsistency();
@@ -217,7 +212,7 @@ int main() {
       // add track to event display
       display->addEvent(&fitTrack);
     }
-    */
+    
   }// end loop over events
   
   delete fitter;
