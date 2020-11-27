@@ -91,6 +91,43 @@ install(TARGETS GenFitMinimalExample DESTINATION "${INSTALL_BIN_DIR}")
 
 ##################################################################
 
+set(modifiedExample_SRC
+	modifiedExample.cxx
+)
+
+add_executable(modifiedExample ${modifiedExample_SRC})
+target_link_libraries(modifiedExample
+	${GENFIT_LIBRARY}
+	${ROOT_LIBRARIES}
+)
+
+set_target_properties(modifiedExample PROPERTIES
+				     RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
+				     )
+
+install(TARGETS modifiedExample DESTINATION "${INSTALL_BIN_DIR}")
+
+##################################################################
+
+
+set(oldMagneticField_SRC
+	oldMagneticField.cxx
+)
+
+add_executable(oldMagneticField ${oldMagneticField_SRC})
+target_link_libraries(oldMagneticField
+	${GENFIT_LIBRARY}
+	${ROOT_LIBRARIES}
+)
+
+set_target_properties(oldMagneticField PROPERTIES
+				     RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
+				     )
+
+install(TARGETS oldMagneticField DESTINATION "${INSTALL_BIN_DIR}")
+
+##################################################################
+
 set(magneticField_SRC
 	magneticField.cxx
 )

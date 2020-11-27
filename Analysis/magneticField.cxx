@@ -144,35 +144,44 @@ int main() {
   genfit::MeasurementCreator measurementCreator;
   // init geometry and mag. field
   TGeoManager::Import("plugins/libTestGeometry.vgm.root");
-  
   TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
+
+  genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
   
   genfit::FieldManager::getInstance()->init(new field(0., 0., 0.5, magnet));//0.5 kGauss = 0.05T   
-  genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
-
+  
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
+  
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
-  genfit::Track fitTrack;
-  TMatrixDSym covM(6);
-  TVectorD hitCoords(2);
 
+  // particle pdg code; pion hypothesis
+  const int pdg = 211;
+  
+  // start values for the fit, e.g. from pattern recognition
+  TVector3 pos(0, 0, 0);
+  TVector3 mom(0, 0, 3);
+  
+  // trackrep
+  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pdg);
+  
+  // create track
+  genfit::Track fitTrack(rep, pos, mom);
+  
+  TMatrixDSym covM(2);
   // approximate covariance
-    double resolution = 0.01;
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
-	if (i==j) covM(i, j) = resolution*resolution;
-	else covM(i, j) = 0.0;
-      }
-    }
-    
+  double resolution = 0.01;
+  covM.UnitMatrix();
+  covM *= resolution*resolution;
+
+  TVectorD hitCoords(2);
+  std::vector<genfit::PlanarMeasurement*> v_m;
+  
   // main loop (loops on the events)  
   for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
     
     // declaration of the variables
-    
     TVector3 posTemp;
-    genfit::PlanarMeasurement* measurement;
     // std::cout<<"n: "<<nTotalHits<<std::endl;
     // loop on the measurements for each event
     for(int s=0;s<nTotalHits;s++){
@@ -180,19 +189,21 @@ int main() {
 	posTemp.SetX(xCoord[s]);
 	posTemp.SetY(yCoord[s]);
 	posTemp.SetZ(zCoord[s]);
+	//	posTemp.SetZ(hVolZ[s]);//no?
 	// uncomment for further information on the particle
 	  // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
 	//	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
-	hitCoords[0] = xCoord[s];
-	hitCoords[1] = yCoord[s];
-	measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr);
-	measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0,zCoord[s]), TVector3(1,0,0), TVector3(0,1,0))), s);
+	hitCoords[0] = posTemp.X();
+	hitCoords[1] = posTemp.Y();
+	genfit::PlanarMeasurement* measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr);
+	measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0, posTemp.Z()), TVector3(1,0,0), TVector3(0,1,0))), s);
+	v_m.push_back(measurement);
 	fitTrack.insertPoint(new genfit::TrackPoint(measurement, &fitTrack));
       }
     }
     
-    fitTrack.Print();
+    //    fitTrack.Print();
     fitTrack.checkConsistency();
 
     // do the fit
@@ -203,15 +214,19 @@ int main() {
     
     fitTrack.checkConsistency();
     
-    if (iEvent < 1000) {
-      // add track to event display
-      display->addEvent(&fitTrack);
-    }
+    // if (iEvent < 1000) {
+    //   // add track to event display
+    //   display->addEvent(&fitTrack);
+    // }
 
+    for (int ii=0; ii<(int)v_m.size(); ii++) {
+      delete v_m[ii];
+    }
+    
   }// end loop over events
   
   // open event display
-  display->open();
+  //  display->open();
 
   delete fitter;
   
