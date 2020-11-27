@@ -2,6 +2,8 @@
 
 #include <Exception.h>
 #include <FieldManager.h>
+#include <AbsKalmanFitter.h>
+#include <KalmanFitter.h>
 #include <KalmanFitterRefTrack.h>
 #include <StateOnPlane.h>
 #include <Track.h>
@@ -151,12 +153,33 @@ int main() {
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
 
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
-  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
-  genfit::Track fitTrack;
-  TMatrixDSym covM(6);
-  TVectorD hitCoords(2);
+  
+  //  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
+  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitter();
+  
+  TClonesArray data("genfit::mySpacepointDetectorHit", 500);//size massima
+  //  genfit::MeasurementFactory<genfit::mySpacepointMeasurement>* measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
+  genfit::MeasurementFactory<genfit::AbsMeasurement>* measFact = new genfit::MeasurementFactory<genfit::AbsMeasurement>();
+  genfit::AbsMeasurementProducer<genfit::AbsMeasurement>* prod = new genfit::MeasurementProducer<genfit::mySpacepointDetectorHit, genfit::mySpacepointMeasurement>(&data);
+  for (int ii=0; ii<19; ii++) {//ogni piano è un detector e quind un producer
+    //    measFact->addProducer(ii, (genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement>*)prod);
+    measFact->addProducer(ii, prod);
+  }
+    
+  // main loop (loops on the events)  
+  for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
+    nbytes += hitTree->GetEntry(iEvent);
 
-  // approximate covariance
+    genfit::TrackCand trackHits;// = new genfit::TrackCand();
+    //    trackHits.Print();
+    
+    // declaration of the variables
+    unsigned int nMeasurements = 0;
+    
+    TMatrixDSym covM(3);
+    TVector3 posTemp;
+    
+    // approximate covariance
     double resolution = 0.01;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j) {
@@ -164,16 +187,7 @@ int main() {
 	else covM(i, j) = 0.0;
       }
     }
-    
-  // main loop (loops on the events)  
-  for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
-    nbytes += hitTree->GetEntry(iEvent);
-    
-    // declaration of the variables
-    
-    TVector3 posTemp;
-    genfit::PlanarMeasurement* measurement;
-    // std::cout<<"n: "<<nTotalHits<<std::endl;
+    //    std::cout<<"n: "<<nTotalHits<<std::endl;
     // loop on the measurements for each event
     for(int s=0;s<nTotalHits;s++){
       if(eDep[s]>0.01){// if the energy is deposited on the layer then the hit is detectable
@@ -184,36 +198,38 @@ int main() {
 	  // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
 	//	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
-	hitCoords[0] = xCoord[s];
-	hitCoords[1] = yCoord[s];
-	measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr);
-	measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0,zCoord[s]), TVector3(1,0,0), TVector3(0,1,0))), s);
-	fitTrack.insertPoint(new genfit::TrackPoint(measurement, &fitTrack));
+	trackHits.addHit(hVol[s], s);
+	//	trackHits.Print();
+	new(data[s]) genfit::mySpacepointDetectorHit(posTemp, covM);
+	nMeasurements++;
       }
     }
-    
-    fitTrack.Print();
-    fitTrack.checkConsistency();
+    //    data.Dump();
+    //    genfit::Track fitTrack(trackHits, (*((genfit::MeasurementFactory<genfit::AbsMeasurement> *)measFact)));
+    genfit::Track fitTrack(trackHits, *measFact);
+    // trackHits.Print();
+    // fitTrack.Print();
 
+    // checkConsistency is already called in the constructor of track
     // do the fit
-    fitter->processTrack(&fitTrack);
+    fitter->processTrackWithRep(&fitTrack,new genfit::RKTrackRep());
     
-    // print fit result
-    fitTrack.getFittedState().Print();
-    
+    //check
     fitTrack.checkConsistency();
     
     if (iEvent < 1000) {
       // add track to event display
-      display->addEvent(&fitTrack);
+      //display->addEvent(&fitTrack);
     }
 
+    data.Delete();
   }// end loop over events
   
   // open event display
   display->open();
 
-  delete fitter;
-  
+  // delete fitter;
+  // delete measFact;
+  // delete prod;  
 }
 
