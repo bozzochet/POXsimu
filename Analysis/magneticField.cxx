@@ -160,13 +160,7 @@ int main() {
   // start values for the fit, e.g. from pattern recognition
   TVector3 pos(0, 0, 0);
   TVector3 mom(0, 0, 3);
-  
-  // trackrep
-  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pdg);
-  
-  // create track
-  genfit::Track fitTrack(rep, pos, mom);
-  
+      
   TMatrixDSym covM(2);
   // approximate covariance
   double resolution = 0.01;
@@ -179,6 +173,12 @@ int main() {
   // main loop (loops on the events)  
   for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
+
+    // trackrep
+    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pdg);
+    
+    // create track
+    genfit::Track fitTrack(rep, pos, mom);
     
     // declaration of the variables
     TVector3 posTemp;
@@ -198,7 +198,6 @@ int main() {
 	hitCoords[1] = posTemp.Y();
 	genfit::PlanarMeasurement* measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr);
 	measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0, posTemp.Z()), TVector3(1,0,0), TVector3(0,1,0))), s);
-	v_m.push_back(measurement);
 	fitTrack.insertPoint(new genfit::TrackPoint(measurement, &fitTrack));
       }
     }
@@ -214,19 +213,15 @@ int main() {
     
     fitTrack.checkConsistency();
     
-    // if (iEvent < 1000) {
-    //   // add track to event display
-    //   display->addEvent(&fitTrack);
-    // }
-
-    for (int ii=0; ii<(int)v_m.size(); ii++) {
-      delete v_m[ii];
+    if (iEvent < 1000) {
+      // add track to event display
+      display->addEvent(&fitTrack);
     }
-    
+
   }// end loop over events
   
   // open event display
-  //  display->open();
+  display->open();
 
   delete fitter;
   
