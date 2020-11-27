@@ -73,7 +73,7 @@ public:
 };
 
 
-int main() {
+int main(){
 
   // reading the input root file ----------------------
   TString inputFileName="anaOut.root";
@@ -148,7 +148,8 @@ int main() {
 
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
   
-  genfit::FieldManager::getInstance()->init(new field(0., 0., 0.5, magnet));//0.5 kGauss = 0.05T   
+  genfit::FieldManager::getInstance()->init(new field(0., 0.5, 0.0, magnet));//0.5 kGauss = 0.05T
+  //  genfit::FieldManager::getInstance()->init(new field(0., 10.0, 0.0, magnet));//10.0 kGauss = 1T   
   
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
   
@@ -213,9 +214,12 @@ int main() {
     
     fitTrack.checkConsistency();
     
-    if (iEvent < 1000) {
+    if (iEvent < 10) {
       // add track to event display
       display->addEvent(&fitTrack);
+    }
+    else {
+      break;
     }
 
   }// end loop over events
@@ -224,6 +228,7 @@ int main() {
   display->open();
 
   delete fitter;
-  
+
+  return 0;
 }
 

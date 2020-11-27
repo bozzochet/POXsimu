@@ -53,8 +53,7 @@
 #define nMaxTotalHits 500
 //#define nStrips 4096 // for now hardcoded but let's see
 
-//int pri=0;
-int pri=1;
+//#define _PRI_
 
 // Event vars-----------------------
 int nInt = 0;
@@ -244,11 +243,11 @@ void AlignmentMC(int ntdr, double * alz){
 // --------------------------------------------
 
 
-void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1) {
+void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=0) {
   static const std::string routineName("simpleanalysis");
   
   GGSSmartLog::verboseLevel = GGSSmartLog::INFO; // Print only INFO messages or more important
-  
+
   COUT(INFO) << "Begin analysis" << ENDL;
   
   // Create the reader container and open the data file
@@ -336,7 +335,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
     hReader->SetDetector("siDAMPETileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
   }
   hReader->SetDetector("siTileLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
-
+  
   //   hReader->SetDetector("siStripLog", kTRUE); // The name is the same of the sensitive logical volume name in the simulation
    
   // Retrieve the MC truth sub-reader
@@ -371,7 +370,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 
   int nLayers = geoParams->GetIntGeoParam("targetLayerNo")+geoParams->GetIntGeoParam("smLayerNo");
 
-  ConfLadder(nLayers, geoParams->GetRealGeoParam("tileSPitch"), geoParams->GetRealGeoParam("tileKPitch"));
+  ConfLadder(nLayers, geoParams->GetRealGeoParam("tileSPitch"), geoParams->GetRealGeoParam("tileKPitch"));//da estendere a tutti i tipi di rivelatori?
     
   Double_t alza[nLayers];
 
@@ -508,7 +507,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
     }
     
     
-    std::cout<<"EVT "<<iEv<<" NHITS "<<nHits<<std::endl;
+    //    std::cout<<"EVT "<<iEv<<" NHITS "<<nHits<<std::endl;
     //nHitHisto->Fill(nHits);
     
     float totEDep = 0.;   
@@ -575,7 +574,9 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
       int nPHits= thisHit->GetNPartHits();
       
       if(nPHits>=2||pprod) {
+#ifdef _PRI_
 	std::cout<<"******* HIT: "<< iHit <<" --->>>PARTHITS: "<<nPHits<<" detind: "<<hReader->GetDetectorIndex("siTileLog")<<" "<<thisHit->GetVolumeName()<<" "<<thisHit->GetVolumeID()<<" pos:"<<thisHit->GetVolumePosition()[2]<<std::endl;
+#endif
       }
 
       //      hVol[iHit]=thisHit->GetVolumeID();
@@ -586,10 +587,10 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
         thisPHit = static_cast<GGSTPartHit*>(thisHit->GetPartHit(iPHit));
 	
         if (nPHits>=2||pprod)
-          thisPHit->Dump();
+	  //          thisPHit->Dump();
         
 	//        if(gEne<0 && thisPHit->parentID==0 && thisPHit->particlePdg==22){ /// primary particle hit values
-	        if(gEne<0 && thisPHit->parentID==0){ /// primary particle hit values 
+	if(gEne<0 && thisPHit->parentID==0){ /// primary particle hit values 
           gEne=1e3*thisPHit->entranceEnergy;
 	  gX=thisPHit->entrancePoint[0];
 	  gY=thisPHit->entrancePoint[1];
@@ -597,6 +598,7 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	
       	if(thisPHit->particlePdg!=22){  /// secondary particles (electron and positron)
           nTotalHits++;
+	  //	  printf("%d\n", nTotalHits);
 	  
           hVolZ[nTotalHits-1]=thisHit->GetVolumePosition()[2];
           //Mappatura volumi
@@ -638,7 +640,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	    ichxy=int((ixy+msidey/2.)/ropitch);
 	    ochxy=int((oxy+msidey/2.)/ropitch);
 	    msidexy=msidey;
-	  }else{
+	  }
+	  else{
 	    ropitch=kpitch;
 	    ixy=thisPHit->entrancePoint[0];
 	    oxy=thisPHit->exitPoint[0];
@@ -688,7 +691,8 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	    oro=true;
 	    otailfr=(oxy+msidexy/2.-ochxy*ropitch)/trl; 
 	    oheadfr=((ochxy+0.5)*ropitch-oxy-msidexy/2.)/trl;
-	  }else{
+	  }
+	  else{
 	    otailfr=(oxy+msidexy/2.-(ochxy+0.5)*ropitch)/trl; 
 	    oheadfr=((ochxy+1)*ropitch-oxy-msidexy/2.)/trl;
 	    /// if(ochxy>ichxy)
@@ -712,16 +716,17 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	      iDep[0]=eDep[nTotalHits-1]*(oro?1.:(iheadfr+otailfr/2.));
 	      if(!oro)
 		iDep[1]=eDep[nTotalHits-1]*(otailfr/2.);
-	    
-	    if(pri)
+	      
+#ifdef _PRI_
 	      cout<<"------------>SINGLE IRO "<<(oro?"ORO: ":": ")<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CH "<<chXY[nTotalHits-1]<<" DCH I/O: "<<dich<<" "<<doch<<" EDEP "<<eDep[nTotalHits-1]<<" iDep:"<<iDep[0]<<" "<<(oro?iDep[0]:iDep[1])<<endl;
-
+#endif
 	    }
 	    else{
 	      iDep[0]=eDep[nTotalHits-1]*(oro?(itailfr/2. + oheadfr):0.5);
 	      iDep[1]=eDep[nTotalHits-1]*(oro?itailfr/2.:0.5);
-
+#ifdef _PRI_
 	      cout<<"------------>SINGLE INRO "<<(oro?"ORO: ":": ")<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CHS "<<ichxy<<" "<<ichxy+1<<" HSTR "<< hitStrips[nTotalHits-1]<<" DCH I/O: "<<dich<<" "<<doch<<" EDEP "<<eDep[nTotalHits-1]<<" iDep:"<<iDep[0]<<" "<<iDep[1]<<endl;
+#endif
 	    }		
 	    
 	  }
@@ -795,9 +800,9 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	      
 	    }/// ochxy<ichxy
 	    
-	    if(pri)
-	      cout<<"------------>INCLINED: "<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CoG "<<chXY[nTotalHits-1]<<" HSTR "<<hitStrips[nTotalHits-1]<<" TRL "<<trl<<" EDEP "<<eDep[nTotalHits-1]<<"  CHX IN "<<ichxy<<" OUT "<<ochxy<<"  HFR "<<(ichxy<ochxy?iheadfr:oheadfr)<<" TFR "<<(ichxy<ochxy?otailfr:itailfr)<<endl;
-
+#ifdef _PRI_
+	    cout<<"------------>INCLINED: "<<iEv<<" "<<hVol[nTotalHits-1]<<" AL (1=Y, 0=X) "<<xyAlign[hVol[nTotalHits-1]]<<" PDG "<<PDG[nTotalHits-1]<<" PAR "<<ParID[nTotalHits-1]<<" TrID "<<TrID[nTotalHits]<<" CoG "<<chXY[nTotalHits-1]<<" HSTR "<<hitStrips[nTotalHits-1]<<" TRL "<<trl<<" EDEP "<<eDep[nTotalHits-1]<<"  CHX IN "<<ichxy<<" OUT "<<ochxy<<"  HFR "<<(ichxy<ochxy?iheadfr:oheadfr)<<" TFR "<<(ichxy<ochxy?otailfr:itailfr)<<endl;
+#endif
 	  }/// ichxy!=ochxy
 
 	  //cout<<"INCL HIT VALS: "<<hitStrips[nTotalHits-1]<<" ";
@@ -823,23 +828,27 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
 	    }
 	  }
 	  //	    cout<<endl;
-	  if(pri)
-	    cout<<"**** SIM VALS: "<<simStrips[nTotalHits-1]<<" ";
+#ifdef _PRI_
+	  cout<<"**** SIM VALS: "<<simStrips[nTotalHits-1]<<" ";
+#endif
 	  for (int id=0; id<hitStrips[nTotalHits-1]+2*cpw;id++){
-	    if(pri)
-	      cout<<(oxy>ixy?ichxy:ochxy)-cpw+id<<":"<<cciDep[id]<<" ";
-		
+#ifdef _PRI_
+	    cout<<(oxy>ixy?ichxy:ochxy)-cpw+id<<":"<<cciDep[id]<<" ";
+#endif
 	    if((oxy>ixy?ichxy:ochxy)-cpw+id>=0&&(oxy>ixy?ichxy:ochxy)-cpw+id<=nroSt){
 	      simChan.push_back((oxy>ixy?ichxy:ochxy)-cpw+id);
 	      simDep.push_back(cciDep[id]);
-	    }else{
+	    }
+	    else{
 	      simStrips[nTotalHits-1]-=1;
-	      if(pri)
-		cout<<"SENSOR BORDER REACHED: "<<chXY[nTotalHits-1]-cpw+id<<" "<<cciDep[id]<<" LOST SIGNAL"<<endl;
+#ifdef _PRI_
+	      cout<<"SENSOR BORDER REACHED: "<<chXY[nTotalHits-1]-cpw+id<<" "<<cciDep[id]<<" LOST SIGNAL"<<endl;
+#endif
 	    }
 	  }
+#ifdef _PRI_
 	  cout<<endl;
-	  
+#endif	  
 	  if(thisPHit->parentID==1&&thisPHit->particlePdg==-11){ /// positron
 	    if (!pprod){
 	      pprod=true;
@@ -910,19 +919,25 @@ void SimpleAnalysis(TString inputFileName, TString outputFileName,bool full50=1)
     // }//IF PPROD
 
     if (!intInfo&&pprod) {
-      
-      cout<<"********* SUMMARY EVENT DATA: "<<iEv<<" nTotalHits "<<nTotalHits<<" SIMD: "<<simDep.size()<<endl;  
+#ifdef _PRI_
+      cout<<"********* SUMMARY EVENT DATA: "<<iEv<<" nTotalHits "<<nTotalHits<<" SIMD: "<<simDep.size()<<endl;
+#endif
       hitTree->Fill();
       int inx=0;
       for(int in=0;in<nTotalHits;in++){
-	
+
+#ifdef _PRI_
 	cout<<"LAYER "<<hVol[in]<<" PDG "<<PDG[in]<<" ParID "<<ParID[in]<<": "<<endl;
-	for (int id=0;id<simStrips[in];id++)
-	  {
-	    cout <<simChan[inx]<<" "<<simDep[inx]<<endl;
-	    inx++;
-	  }
+#endif
+	for (int id=0;id<simStrips[in];id++){
+#ifdef _PRI_
+	  cout <<simChan[inx]<<" "<<simDep[inx]<<endl;
+#endif
+	  inx++;
+	}
+#ifdef _PRI_
 	cout<<endl;
+#endif
       }
       //	  std::cout<<"LAST: "<<yend1<<" -> substitution: "<<threcV*180/TMath::Pi()<<" "<<lastZ<<" ="<<tan(threcV)*(60.-lastZ)<<std::endl;
       //        yend1=tan(threcV)*(60.-lastZ);
