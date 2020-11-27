@@ -2,6 +2,8 @@
 
 #include <Exception.h>
 #include <FieldManager.h>
+#include <AbsKalmanFitter.h>
+#include <KalmanFitter.h>
 #include <KalmanFitterRefTrack.h>
 #include <StateOnPlane.h>
 #include <Track.h>
@@ -151,7 +153,8 @@ int main() {
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
 
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
-  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
+  //  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
+  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitter();
 
   TClonesArray data("genfit::mySpacepointDetectorHit", 500);//size massima
   //  genfit::MeasurementFactory<genfit::mySpacepointMeasurement>* measFact = new genfit::MeasurementFactory<genfit::mySpacepointMeasurement>();
@@ -161,12 +164,14 @@ int main() {
     //    measFact->addProducer(ii, (genfit::AbsMeasurementProducer<genfit::mySpacepointMeasurement>*)prod);
     measFact->addProducer(ii, prod);
   }
-    
+  
   // main loop (loops on the events)  
   for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
+    printf("%d\n", iEvent);
     nbytes += hitTree->GetEntry(iEvent);
 
     genfit::TrackCand trackHits;// = new genfit::TrackCand();
+    //    trackHits.Print();
     
     // declaration of the variables
     unsigned int nMeasurements = 0;
@@ -192,19 +197,24 @@ int main() {
 	// uncomment for further information on the particle
 	  // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
-	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
+	//	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
 	trackHits.addHit(hVol[s], s);
+	//	trackHits.Print();
 	new(data[s]) genfit::mySpacepointDetectorHit(posTemp, covM);
 	nMeasurements++;
       }
     }
+    //    data.Dump();
     //    genfit::Track fitTrack(trackHits, (*((genfit::MeasurementFactory<genfit::AbsMeasurement> *)measFact)));
     genfit::Track fitTrack(trackHits, *measFact);
+    // trackHits.Print();
+    // fitTrack.Print();
     
     //check
     fitTrack.checkConsistency();
     
     // do the fit
+    fitter->setDebugLvl(1);
     fitter->processTrack(&fitTrack);
     
     //check
@@ -214,15 +224,15 @@ int main() {
       // add track to event display
       display->addEvent(&fitTrack);
     }
-
+    
     data.Delete();
   }// end loop over events
   
-  delete fitter;
-  delete measFact;
-  delete prod;
   // open event display
   display->open();
 
+  // delete fitter;
+  // delete measFact;
+  // delete prod;
 }
 
