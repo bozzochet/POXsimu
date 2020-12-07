@@ -27,21 +27,17 @@
 
 
 
-
 int main() {
 
   gRandom->SetSeed(14);
 
   // init MeasurementCreator
   genfit::MeasurementCreator measurementCreator;
-
-
   // init geometry and mag. field
   new TGeoManager("Geometry", "Geane geometry");
   TGeoManager::Import("genfitGeom.root");
   genfit::FieldManager::getInstance()->init(new genfit::ConstField(0.,0., 15.)); // 15 kGauss
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
-
 
   // init event display
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
