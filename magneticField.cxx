@@ -16,7 +16,6 @@
 #include <MeasurementCreator.h>
 #include <mySpacepointDetectorHit.h>
 #include <mySpacepointMeasurement.h>
-#include <RectangularFinitePlane.h>
 
 #include <TDatabasePDG.h>
 #include <TGeoMaterialInterface.h>
@@ -31,10 +30,6 @@
 #include <TSystem.h>
 #include <TVirtualMagField.h>
 #include <TClonesArray.h>
-#include <TApplication.h>
-#include <TH1D.h>
-#include <TCanvas.h>
-#include <TText.h>
 
 class field: public genfit::AbsBField{
 private:
@@ -78,9 +73,8 @@ public:
 };
 
 
-int main(int argc, char* argv[]){
-  TApplication* app = new TApplication("app", &argc, argv);
-  
+int main() {
+
   // reading the input root file ----------------------
   TString inputFileName="anaOut.root";
   TFile *inFile=new TFile(inputFileName,"READ");
@@ -145,114 +139,81 @@ int main(int argc, char* argv[]){
   std::cout<<"got "<<nentries<<" events"<<std::endl;
   Long64_t nbytes = 0;
   //--------------------------------------------------------
-
+  
+  // init MeasurementCreator
+  genfit::MeasurementCreator measurementCreator;
   // init geometry and mag. field
   TGeoManager::Import("plugins/libTestGeometry.vgm.root");
+  
   TGeoVolume *magnet = gGeoManager->GetVolume("magnet");
-
+  
+  genfit::FieldManager::getInstance()->init(new field(0., 0., 0.5, magnet));//0.5 kGauss = 0.05T   
   genfit::MaterialEffects::getInstance()->init(new genfit::TGeoMaterialInterface());
-  
-  genfit::FieldManager::getInstance()->init(new field(0., 0.5, 0.0, magnet));//0.5 kGauss = 0.05T
-  //  genfit::FieldManager::getInstance()->init(new field(0., 10., 0., magnet));//10.0 kGauss = 1T   
-  
-  genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
-  
-  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
-  TCanvas *c = new TCanvas();
-  TCanvas* c5 = new TCanvas();
-  TH1D* hchi = new TH1D("","",100,-1,18);
-  TH1D* hMom5 = new TH1D("","",150,-4000,200);//,-0.005,0.0005);
-  
-  // particle pdg code; pion hypothesis
-  const int pdg = 13;
-  // start values for the fit, e.g. from pattern recognition
-  TVector3 pos(0, 0, 0);
-  
-      
-  TMatrixDSym covM(2);
-  // approximate covariance
-  double resolution = TMath::Power(10,-5);//10 um;
-  covM.UnitMatrix();
-  covM *= resolution*resolution;
 
+  genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
+  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
+  genfit::Track fitTrack;
+  TMatrixDSym covM(6);
   TVectorD hitCoords(2);
-  std::vector<genfit::PlanarMeasurement*> v_m;
-  
+
+  // approximate covariance
+    double resolution = 0.01;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j) {
+	if (i==j) covM(i, j) = resolution*resolution;
+	else covM(i, j) = 0.0;
+      }
+    }
+    
   // main loop (loops on the events)  
   for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
-    if(iEvent==1941 || iEvent==3221 || iEvent==7440 || iEvent==2573 || iEvent==5964 || iEvent==4836 || iEvent==9491 || iEvent==6143 || iEvent==6763 || iEvent==282 || iEvent==2438 || iEvent==3771 || iEvent==4157 || iEvent==613 || iEvent==6326 || iEvent==6786 || iEvent==1593 || iEvent==2570 || iEvent==867 || iEvent==1574 || iEvent==1912)continue;
-    // trackrep
-    TVector3 mom(xMom[0], yMom[0], zMom[0]);
-    genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pdg);
-    
-    // create track
-    genfit::Track fitTrack(rep, pos, mom);
     
     // declaration of the variables
-    TVector3 posTruth;
+    
+    TVector3 posTemp;
+    genfit::PlanarMeasurement* measurement;
     // std::cout<<"n: "<<nTotalHits<<std::endl;
     // loop on the measurements for each event
     for(int s=0;s<nTotalHits;s++){
       if(eDep[s]>0.01){// if the energy is deposited on the layer then the hit is detectable
-	posTruth.SetX(xCoord[s]);
-	posTruth.SetY(yCoord[s]);
-	posTruth.SetZ(zCoord[s]);
-	//	posTruth.SetZ(hVolZ[s]);//no?
+	posTemp.SetX(xCoord[s]);
+	posTemp.SetY(yCoord[s]);
+	posTemp.SetZ(zCoord[s]);
 	// uncomment for further information on the particle
 	  // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
 	//	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
-	hitCoords[0] = posTruth.X();
-	hitCoords[1] = posTruth.Y();
-        
-	genfit::PlanarMeasurement* measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr);
-	
-	measurement->setPlane(genfit::SharedPlanePtr( new genfit::DetPlane(TVector3(0,0, posTruth.Z()), TVector3(1,0,0), TVector3(0,1,0),nullptr)), s);
+	hitCoords[0] = xCoord[s];
+	hitCoords[1] = yCoord[s];
+	measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr);
+	measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0,zCoord[s]), TVector3(1,0,0), TVector3(0,1,0))), s);
 	fitTrack.insertPoint(new genfit::TrackPoint(measurement, &fitTrack));
       }
     }
-    std::cout<<"event: "<<iEvent<<std::endl;
-    //    fitTrack.Print();
+    
+    fitTrack.Print();
     fitTrack.checkConsistency();
 
     // do the fit
     fitter->processTrack(&fitTrack);
     
     // print fit result
-    //fitTrack.getFittedState().Print();
-
-    TVector3 posFitted, momFitted;
-    TMatrixDSym covFitted;
-    double rhoMomTruth = TMath::Sqrt(TMath::Power(xMom[0],2)+TMath::Power(yMom[0],2)+TMath::Power(zMom[0],2) );
-    momFitted =  TVector3( (fitTrack.getFittedState().get6DState())[3], (fitTrack.getFittedState().get6DState())[4], (fitTrack.getFittedState().get6DState())[5] );
-    //    fitTrack.getFittedState().getPosMomCov(posFitted, momFitted, covFitted);
-    hchi->Fill(fitTrack.getFitStatus()->getChi2()/fitTrack.getFitStatus()->getNdf());
-    double rhoMomFitted = TMath::Sqrt(TMath::Power(momFitted.X(),2)+TMath::Power(momFitted.Y(),2)+ TMath::Power(momFitted.Z(),2) );
-    double val= (1 - (rhoMomTruth/rhoMomFitted));
-    hMom5->Fill(val);
-    std::cout<<"val "<<rhoMomTruth<<"      "<<rhoMomFitted<<std::endl;
-    TText T;  T.SetTextFont(42);  T.SetTextAlign(21);
-    hMom5->Fit("gaus","","",-0.002,0.005);
-    c5->cd();    hMom5->Draw();    T.DrawTextNDC(.5,.95,"(1/momTruth - 1/momFitted)/(1/MomTruth)");
-    c->cd(); hchi->Draw();
+    fitTrack.getFittedState().Print();
+    
     fitTrack.checkConsistency();
     
-    if (iEvent<5000){
+    if (iEvent < 1000) {
       // add track to event display
       display->addEvent(&fitTrack);
     }
-    else {
-      break;
-    }
-    //    std::cout<<"Pval"<<fitter->getPVal(fitTrack, rep,-1)<<std::endl;
+
   }// end loop over events
   
   // open event display
   display->open();
 
   delete fitter;
-  delete c5;
-  return 0;
+  
 }
 
