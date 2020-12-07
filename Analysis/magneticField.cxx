@@ -233,7 +233,7 @@ int main(int argc, char* argv[]){
     hMom5->Fill(val);
     std::cout<<"val "<<rhoMomTruth<<"      "<<rhoMomFitted<<std::endl;
     TText T;  T.SetTextFont(42);  T.SetTextAlign(21);
-    hMom5->Fit("gaus","","",-500,0.005);
+    hMom5->Fit("gaus","","",-1000,0.005);
     c5->cd();    hMom5->Draw();    T.DrawTextNDC(.5,.95,"(1/momTruth - 1/momFitted)/(1/MomTruth)");
     c->cd(); hchi->Draw();
     fitTrack.checkConsistency();
