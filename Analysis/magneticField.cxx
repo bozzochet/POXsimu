@@ -174,6 +174,7 @@ int main(){
   // main loop (loops on the events)  
   for(Long64_t iEvent=0; iEvent<nentries; iEvent++) {
     nbytes += hitTree->GetEntry(iEvent);
+    printf("********+ %lld ********\n", iEvent);
 
     // trackrep
     genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pdg);
@@ -210,7 +211,7 @@ int main(){
     fitter->processTrack(&fitTrack);
     
     // print fit result
-    fitTrack.getFittedState().Print();
+    //    fitTrack.getFittedState().Print();
     
     fitTrack.checkConsistency();
     
