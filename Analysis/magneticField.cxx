@@ -36,6 +36,8 @@
 #include <TCanvas.h>
 #include <TText.h>
 
+#define _TC_(L) try { L; } catch(genfit::Exception& e){std::cerr<<"Exception, next track"<<std::endl; std::cerr<< e.what(); continue;}
+
 #define NODISPLAY
 
 class field: public genfit::AbsBField{
@@ -83,14 +85,14 @@ public:
 int main(int argc, char* argv[]){
   TApplication* app = new TApplication("app", &argc, argv);
 
-  TCanvas *c = new TCanvas();
-  TCanvas* c3 = new TCanvas();
-  TCanvas* c4 = new TCanvas();
-  TCanvas* c5 = new TCanvas();
+  TCanvas *cchi = new TCanvas();
+  TCanvas* cmom = new TCanvas();
+  TCanvas* cinvmom = new TCanvas();
+  TCanvas* creso = new TCanvas();
   TH1D* hchi = new TH1D("chi","chi",100,-1,18);
-  TH1D* hMom3 = new TH1D("1.0/mom","invmom",1000,-1.0, 1.0);
-  TH1D* hMom4 = new TH1D("mom","mom",10000,-400, 400);
-  TH1D* hMom5 = new TH1D("reso","reso",1000,-10.0,10.0);//,-0.005,0.0005);
+  TH1D* hinvmom = new TH1D("1.0/mom","invmom",1000,-1.0, 1.0);
+  TH1D* hmom = new TH1D("mom","mom",10000,-400, 400);
+  TH1D* hreso = new TH1D("reso","reso",1000,-10.0,10.0);//,-0.005,0.0005);
   
   // reading the input root file ----------------------
   TString inputFileName="anaOut.root";
@@ -172,11 +174,8 @@ int main(int argc, char* argv[]){
   
   genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
   
-  // particle pdg code; pion hypothesis
-  const int pdg = 13;
-  // start values for the fit, e.g. from pattern recognition
-  TVector3 pos(0, 0, 0);
-  
+  // particle pdg code; muon hypothesis
+  const int pdg = 13;  
       
   TMatrixDSym covM(2);
   // approximate covariance
@@ -192,33 +191,47 @@ int main(int argc, char* argv[]){
     nbytes += hitTree->GetEntry(iEvent);
     //    printf("********+ %lld ********\n", iEvent);
     if(
-       iEvent==1941 ||
-       iEvent==3221 ||
-       iEvent==7440 ||
-       iEvent==2573 ||
-       iEvent==5964 ||
-       iEvent==4836 ||
-       iEvent==9491 ||
-       iEvent==6143 ||
-       iEvent==6763 ||
-       iEvent== 282 ||
-       iEvent==2438 ||
-       iEvent==3771 ||
-       iEvent==4157 ||
-       iEvent== 613 ||
-       iEvent==6326 ||
-       iEvent==6786 ||
-       iEvent==1593 ||
-       iEvent==2570 ||
-       iEvent== 867 ||
-       iEvent==1574 ||
-       iEvent==1912 ||
-       iEvent==3725 || //MD
+       // iEvent==1941 ||
+       // iEvent==3221 ||
+       // iEvent==7440 ||
+       // iEvent==2573 ||
+       // iEvent==5964 ||
+       // iEvent==4836 ||
+       // iEvent==9491 ||
+       // iEvent==6143 ||
+       // iEvent==6763 ||
+       // iEvent== 282 ||
+       // iEvent==2438 ||
+       // iEvent==3771 ||
+       // iEvent==4157 ||
+       // iEvent== 613 ||
+       // iEvent==6326 ||
+       // iEvent==6786 ||
+       // iEvent==1593 ||
+       // iEvent==2570 ||
+       // iEvent== 867 ||
+       // iEvent==1574 ||
+       // iEvent==1912 ||
+       // iEvent==3725 || //MD
+       // iEvent== 612 || //MD
+       // iEvent== 131 || //MD
+       // iEvent==6857 || //MD
+       // iEvent==8711 || //MD
+       // iEvent==9168 || //MD
+       nTotalHits<10 || //MD 
        0) continue;
+
+    std::cout<<"event: "<<iEvent<<std::endl;
+    
     // trackrep
-    TVector3 mom(xMom[0], yMom[0], zMom[0]);//ma deve essere giusto quello sotto
-    //    TVector3 mom(xMom[0]/1000.0, yMom[0]/1000.0, zMom[0]/1000.0);
     genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pdg);
+
+    // start values for the fit, e.g. from pattern recognition
+    //    TVector3 pos(0, 0, 0);
+    TVector3 pos(xCoord[0], yCoord[0], zCoord[0]);
+
+    //    TVector3 mom(xMom[0], yMom[0], zMom[0]);//ma deve essere giusto quello sotto
+    TVector3 mom(xMom[0]/1000.0, yMom[0]/1000.0, zMom[0]/1000.0);
     
     // create track
     genfit::Track fitTrack(rep, pos, mom);
@@ -232,7 +245,9 @@ int main(int argc, char* argv[]){
 	posTruth.SetX(xCoord[s]);
 	posTruth.SetY(yCoord[s]);
 	posTruth.SetZ(zCoord[s]);
-	//	posTruth.SetZ(hVolZ[s]);//no?
+	//	posTruth.Print();
+	//	posTruth.SetZ(hVolZ[s]);//MD: no? sembrano sempre uguali
+	//	printf("%f %f\n", zCoord[s], hVolZ[s]);
 	// uncomment for further information on the particle
 	  // TDatabasePDG::Instance()->GetParticle(PDG[s])->Dump();
 	  // printf("%d %f\n", PDG[s], TDatabasePDG::Instance()->GetParticle(PDG[s])->Charge());
@@ -240,40 +255,49 @@ int main(int argc, char* argv[]){
 	hitCoords[0] = posTruth.X();
 	hitCoords[1] = posTruth.Y();
         
-	genfit::PlanarMeasurement* measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr);
-	
-	measurement->setPlane(genfit::SharedPlanePtr( new genfit::DetPlane(TVector3(0,0, posTruth.Z()), TVector3(1,0,0), TVector3(0,1,0),nullptr)), s);
-	fitTrack.insertPoint(new genfit::TrackPoint(measurement, &fitTrack));
+	genfit::PlanarMeasurement* measurement = NULL;
+	_TC_(measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr));
+	_TC_(measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0, posTruth.Z()), TVector3(1,0,0), TVector3(0,1,0),nullptr)), s));
+	genfit::TrackPoint* tp = new genfit::TrackPoint(measurement, &fitTrack);
+	_TC_(tp->setSortingParameter(posTruth.Z()));
+	_TC_(fitTrack.insertPoint(tp));
       }
     }
-    std::cout<<"event: "<<iEvent<<std::endl;
+    bool sort_changed = fitTrack.sort();
+    //    printf("%d\n", sort_changed);
     //    fitTrack.Print();
-    fitTrack.checkConsistency();
+      _TC_(fitTrack.checkConsistency());
 
     // do the fit
-    fitter->processTrack(&fitTrack);
+      _TC_(fitter->processTrack(&fitTrack));
     
     // print fit result
     //    fitTrack.getFittedState().Print();
     //    fitTrack.checkConsistency();
 
-    TVector3 posFitted, momFitted;
-    TMatrixDSym covFitted;
-    double rhoMomTruth = TMath::Sqrt(TMath::Power(xMom[0],2)+TMath::Power(yMom[0],2)+TMath::Power(zMom[0],2) )/1000.0;
-    momFitted =  TVector3( (fitTrack.getFittedState().get6DState())[3], (fitTrack.getFittedState().get6DState())[4], (fitTrack.getFittedState().get6DState())[5] );
-    //    fitTrack.getFittedState().getPosMomCov(posFitted, momFitted, covFitted);
-    hchi->Fill(fitTrack.getFitStatus()->getChi2()/fitTrack.getFitStatus()->getNdf());
-    double rhoMomFitted = -1.0*fitTrack.getFitStatus()->getCharge()*TMath::Sqrt(TMath::Power(momFitted.X(),2)+TMath::Power(momFitted.Y(),2)+ TMath::Power(momFitted.Z(),2) );
-    double val= (1.0 - (rhoMomTruth/rhoMomFitted));
-    hMom3->Fill(1.0/rhoMomFitted);
-    hMom4->Fill(rhoMomFitted);
-    hMom5->Fill(val);
-    //    std::cout<<"val "<<rhoMomTruth<<"      "<<rhoMomFitted<<std::endl;
-    printf("val = %f, Ptruth = %f, Pfitted = %f, Charge = %f\n", val, rhoMomTruth, rhoMomFitted, fitTrack.getFitStatus()->getCharge());
-    //    printf("rep.
+    double chisq = fitTrack.getFitStatus()->getChi2();
+    double ndf = fitTrack.getFitStatus()->getNdf();
+    double chisq_red = chisq/ndf;
+    //    printf("%f %f %d\n", chisq, ndf, nTotalHits);
+    if (/*chisq>0.1 &&*/ ndf==33) {
+      TVector3 posFitted, momFitted;
+      TMatrixDSym covFitted;
+      double rhoMomTruth = TMath::Sqrt(TMath::Power(xMom[0],2)+TMath::Power(yMom[0],2)+TMath::Power(zMom[0],2))/1000.0;
+      //    momFitted =  TVector3( (fitTrack.getFittedState().get6DState())[3], (fitTrack.getFittedState().get6DState())[4], (fitTrack.getFittedState().get6DState())[5] );
+      momFitted = fitTrack.getFittedState().getMom();
+      //    fitTrack.getFittedState().getPosMomCov(posFitted, momFitted, covFitted);
+      hchi->Fill(chisq_red);
+      double rhoMomFitted = -1.0*fitTrack.getFittedState().getCharge()*TMath::Sqrt(TMath::Power(momFitted.X(),2)+TMath::Power(momFitted.Y(),2)+ TMath::Power(momFitted.Z(),2) );
+      double val= (1.0 - (rhoMomTruth/rhoMomFitted));
+      hinvmom->Fill(1.0/rhoMomFitted);
+      hmom->Fill(rhoMomFitted);
+      hreso->Fill(val);
+      //    std::cout<<"val "<<rhoMomTruth<<"      "<<rhoMomFitted<<std::endl;
+      //    printf("val = %f, Ptruth = %f, Pfitted = %f, Charge = %f\n", val, rhoMomTruth, rhoMomFitted, fitTrack.getFitStatus()->getCharge());
+    }
     
 #ifndef NODISPLAY
-    if (iEvent<2000){
+    if (iEvent<1000){
       // add track to event display
       display->addEvent(&fitTrack);
     }
@@ -289,32 +313,33 @@ int main(int argc, char* argv[]){
   display->open();
 #endif
 
-  c3->cd();
+  cmom->cd();
   //  hMom3->Fit("gaus","","",-1000,0.005);
-  hMom3->Draw();
+  hmom->Draw();
   
-  c4->cd();
+  cinvmom->cd();
   //  hMom4->Fit("gaus","","",-1000,0.005);
-  hMom4->Draw();
+  hinvmom->Draw();
   
-  c5->cd();
-  hMom5->Fit("gaus","","",-1000,0.005);
-  hMom5->Draw();
+  creso->cd();
+  hreso->Fit("gaus","","",-1000,0.005);
+  hreso->Draw();
   TText T;
   T.SetTextFont(42);
   T.SetTextAlign(21);
   T.DrawTextNDC(.5,.95,"(1/momTruth - 1/momFitted)/(1/MomTruth)");
   
-  c->cd();
+  cchi->cd();
   hchi->Draw();
 
   app->Run();
   
   delete fitter;
-  delete c;
-  delete c3;
-  delete c4;
-  delete c5;
+  delete cchi;
+  delete cmom;
+  delete cinvmom;
+  delete creso;
+
   return 0;
 }
 
