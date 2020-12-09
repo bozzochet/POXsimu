@@ -1,7 +1,9 @@
 #include <vector>
+#include <fstream>
 
 #include <Exception.h>
 #include <FieldManager.h>
+#include <KalmanFitter.h>
 #include <KalmanFitterRefTrack.h>
 #include <StateOnPlane.h>
 #include <Track.h>
@@ -39,6 +41,58 @@
 #define _TC_(L) try { L; } catch(genfit::Exception& e){std::cerr<<"Exception, next track"<<std::endl; std::cerr<< e.what(); continue;}
 
 #define NODISPLAY
+
+FILE *muteOut(fopen("/dev/null", "w"));
+std::ofstream fout("/dev/null");
+
+FILE *stdoutSave = nullptr;
+FILE *stderrSave = nullptr;
+std::streambuf *cout_sbuf = nullptr;
+std::streambuf *cerr_sbuf = nullptr;
+
+bool isMuted = false;
+
+void MuteOutput() {
+  if (!std::exchange(isMuted, true)) {
+    stdoutSave = stdout;
+    stdout = muteOut;
+    stderrSave = stderr;
+    stderr = muteOut;
+
+    // cout_sbuf = std::cout.rdbuf();
+    // cerr_sbuf = std::cerr.rdbuf();
+    // std::cout.rdbuf(fout.rdbuf());
+    // std::cerr.rdbuf(fout.rdbuf());
+    cout_sbuf = genfit::printOut.rdbuf();
+    cerr_sbuf = genfit::errorOut.rdbuf();
+    genfit::printOut.rdbuf(fout.rdbuf());
+    genfit::errorOut.rdbuf(fout.rdbuf());
+  }
+}
+
+void UnmuteOutput() {
+  if (std::exchange(isMuted, false)) {
+    if (stdoutSave) {
+      stdout = stdoutSave;
+      stdoutSave = nullptr;
+    }
+    if (stderrSave) {
+      stderr = stderrSave;
+      stderrSave = nullptr;
+    }
+
+    if (cout_sbuf) {
+      //      std::cout.rdbuf(cout_sbuf);
+      genfit::printOut.rdbuf(cout_sbuf);
+      cout_sbuf = nullptr;
+    }
+    if (cerr_sbuf) {
+      //      std::cerr.rdbuf(cerr_sbuf);
+      genfit::errorOut.rdbuf(cerr_sbuf);
+      cerr_sbuf = nullptr;
+    }
+  }
+}
 
 class field: public genfit::AbsBField{
 private:
@@ -172,7 +226,8 @@ int main(int argc, char* argv[]){
   genfit::EventDisplay* display = genfit::EventDisplay::getInstance();
 #endif
   
-  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
+  //  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitterRefTrack();
+  genfit::AbsKalmanFitter* fitter = new genfit::KalmanFitter();
   
   // particle pdg code; muon hypothesis
   const int pdg = 13;  
@@ -232,7 +287,8 @@ int main(int argc, char* argv[]){
 
     //    TVector3 mom(xMom[0], yMom[0], zMom[0]);//ma deve essere giusto quello sotto
     TVector3 mom(xMom[0]/1000.0, yMom[0]/1000.0, zMom[0]/1000.0);
-    
+    //    mom.Print();
+
     // create track
     genfit::Track fitTrack(rep, pos, mom);
     
@@ -254,6 +310,10 @@ int main(int argc, char* argv[]){
 	//	std::cout<<"iEvent: "<<iEvent<<"s: "<<s<<"layerID (da come c'è scritto su ):"<<hVol[s]<<std::endl;
 	hitCoords[0] = posTruth.X();
 	hitCoords[1] = posTruth.Y();
+
+	//maybe here we have to create the planes and not only the planarmeasurement? Something like:
+      // 	      genfit::AbsFinitePlane* recta = new RectangularFinitePlane( -4.047, 4.012, -3.3918, -1.47 );
+      // genfit::SharedPlanePtr detectorplane (new genfit::DetPlane( origin_, TVector3(0,0,1), recta));
         
 	genfit::PlanarMeasurement* measurement = NULL;
 	_TC_(measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr));
@@ -263,13 +323,16 @@ int main(int argc, char* argv[]){
 	_TC_(fitTrack.insertPoint(tp));
       }
     }
-    bool sort_changed = fitTrack.sort();
+    bool sort_changed = false;
+    sort_changed = fitTrack.sort();
     //    printf("%d\n", sort_changed);
     //    fitTrack.Print();
-      _TC_(fitTrack.checkConsistency());
-
+    _TC_(fitTrack.checkConsistency());
+      
     // do the fit
-      _TC_(fitter->processTrack(&fitTrack));
+    MuteOutput();
+    _TC_(fitter->processTrack(&fitTrack));
+    UnmuteOutput();
     
     // print fit result
     //    fitTrack.getFittedState().Print();
@@ -285,9 +348,11 @@ int main(int argc, char* argv[]){
       double rhoMomTruth = TMath::Sqrt(TMath::Power(xMom[0],2)+TMath::Power(yMom[0],2)+TMath::Power(zMom[0],2))/1000.0;
       //    momFitted =  TVector3( (fitTrack.getFittedState().get6DState())[3], (fitTrack.getFittedState().get6DState())[4], (fitTrack.getFittedState().get6DState())[5] );
       momFitted = fitTrack.getFittedState().getMom();
+      //      momFitted.Print();
       //    fitTrack.getFittedState().getPosMomCov(posFitted, momFitted, covFitted);
       hchi->Fill(chisq_red);
-      double rhoMomFitted = -1.0*fitTrack.getFittedState().getCharge()*TMath::Sqrt(TMath::Power(momFitted.X(),2)+TMath::Power(momFitted.Y(),2)+ TMath::Power(momFitted.Z(),2) );
+      //      double rhoMomFitted = -1.0*fitTrack.getFittedState().getCharge()*TMath::Sqrt(TMath::Power(momFitted.X(),2)+TMath::Power(momFitted.Y(),2)+ TMath::Power(momFitted.Z(),2) );
+      double rhoMomFitted = TMath::Sqrt(TMath::Power(momFitted.X(),2)+TMath::Power(momFitted.Y(),2)+ TMath::Power(momFitted.Z(),2) );
       double val= (1.0 - (rhoMomTruth/rhoMomFitted));
       hinvmom->Fill(1.0/rhoMomFitted);
       hmom->Fill(rhoMomFitted);
