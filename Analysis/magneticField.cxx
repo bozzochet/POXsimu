@@ -145,7 +145,7 @@ int main(int argc, char* argv[]){
   TCanvas* creso = new TCanvas();
   TH1D* hchi = new TH1D("chi","chi",100,-1,18);
   TH1D* hinvmom = new TH1D("1.0/mom","invmom",1000,-1.0, 1.0);
-  TH1D* hmom = new TH1D("mom","mom",10000,-400, 400);
+  TH1D* hmom = new TH1D("mom","mom",10000,-100, 200);
   TH1D* hreso = new TH1D("reso","reso",1000,-10.0,10.0);//,-0.005,0.0005);
   
   // reading the input root file ----------------------
@@ -290,7 +290,8 @@ int main(int argc, char* argv[]){
     //    mom.Print();
 
     // create track
-    genfit::Track fitTrack(rep, pos, mom);
+    genfit::Track fitTrack;
+    //    genfit::Track fitTrack(rep, pos, mom);
     
     // declaration of the variables
     TVector3 posTruth;
@@ -312,9 +313,26 @@ int main(int argc, char* argv[]){
 	hitCoords[1] = posTruth.Y();
 
 	//maybe here we have to create the planes and not only the planarmeasurement? Something like:
-      // 	      genfit::AbsFinitePlane* recta = new RectangularFinitePlane( -4.047, 4.012, -3.3918, -1.47 );
-      // genfit::SharedPlanePtr detectorplane (new genfit::DetPlane( origin_, TVector3(0,0,1), recta));
-        
+	// 	      genfit::AbsFinitePlane* recta = new RectangularFinitePlane( -4.047, 4.012, -3.3918, -1.47 );
+	// genfit::SharedPlanePtr detectorplane (new genfit::DetPlane( origin_, TVector3(0,0,1), recta));
+
+	//in the FOOT sw they do:
+	// PlanarMeasurement* hit = new PlanarMeasurement(planarCoords, planarCov, m_detectorID_map["VT"], iHit, nullptr );
+	// hit->setPlane(m_detectorPlanes[clus->GetPlaneNumber()], clus->GetPlaneNumber());
+	// m_hitCollectionToFit_dataLike[ track_ID ].push_back( hit );
+	// where
+	// map <int, vector<AbsMeasurement*> > m_hitCollectionToFit_dataLike;
+
+	//	for (unsigned int g = 0; g < m_hitCollectionToFit_dataLike[iTrack].size(); ++g){
+	//	  fitTrack_->insertMeasurement( m_hitCollectionToFit_dataLike[iTrack].at(g) );
+	//	}
+
+	//SharedPlanePtr (that is a #typedef for a shared pointer to a DetPlane)
+	// has
+	// isInActive() to ask if a position is in the active area
+	// the FOOT SW has also
+	// isInActiveX() and isInActiveY() but I do not find in the GenFit Doxygen...
+	
 	genfit::PlanarMeasurement* measurement = NULL;
 	_TC_(measurement = new genfit::PlanarMeasurement(hitCoords, covM, hVol[s], s, nullptr));
 	_TC_(measurement->setPlane(genfit::SharedPlanePtr(new genfit::DetPlane(TVector3(0,0, posTruth.Z()), TVector3(1,0,0), TVector3(0,1,0),nullptr)), s));
